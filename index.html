@@ -2,30 +2,62 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Avaliação Oficial - Anticola</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação Oficial - Sistema Anticola</title>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #202124; font-family: sans-serif; overflow: hidden; }
         #container-prova { width: 100%; height: 100vh; transition: filter 0.3s; }
         iframe { width: 100%; height: 100%; border: none; }
-        .blurred { filter: blur(20px); pointer-events: none; }
-        #aviso { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; text-align: center; z-index: 9999; }
-        button { background: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .blurred { filter: blur(25px); pointer-events: none; }
+        #aviso { 
+            display: none; position: fixed; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); background: white; 
+            padding: 30px; border-radius: 15px; text-align: center; 
+            box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 9999; 
+        }
+        button { background: #1a73e8; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
+
     <div id="aviso">
-        <h2>Atividade Suspensa!</h2>
-        <p>Você saiu da aba da prova. O desvio foi registrado.</p>
+        <h2>⚠️ Atividade Suspensa!</h2>
+        <p>Detectamos que você saiu da tela da prova ou tentou abrir outra aba.</p>
         <button onclick="voltar()">Retomar Prova</button>
     </div>
+
     <div id="container-prova">
-        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSe-0dL0HUKCakhvxEgzOIso56hu9ZnAod8dWFdzuMKsrGGBlg/viewform?usp=header"></iframe>
+        <iframe id="prova-frame" src="https://docs.google.com/forms/d/e/1FAIpQLSe-0dL0HUKCakhvxEgzOIso56hu9ZnAod8dWFdzuMKsrGGBlg/viewform?usp=header"></iframe>
     </div>
+
     <script>
-        function bloquear() { document.getElementById('container-prova').classList.add('blurred'); document.getElementById('aviso').style.display = 'block'; }
-        function voltar() { document.getElementById('container-prova').classList.remove('blurred'); document.getElementById('aviso').style.display = 'none'; }
-        window.onblur = bloquear;
-        document.addEventListener("visibilitychange", function() { if (document.hidden) bloquear(); });
+        const container = document.getElementById('container-prova');
+        const aviso = document.getElementById('aviso');
+
+        function bloquear() {
+            container.classList.add('blurred');
+            aviso.style.display = 'block';
+        }
+
+        function voltar() {
+            container.classList.remove('blurred');
+            aviso.style.display = 'none';
+        }
+
+        // DETECTOR DE TROCA DE ABA OU MINIMIZAÇÃO (O mais seguro)
+        // Este comando só dispara se o aluno REALMENTE sair da aba ou esconder o navegador
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                bloquear();
+            }
+        });
+
+        // Bloqueio de Teclas de Atalho (Ctrl+C, Ctrl+V, F12)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.keyCode == 123) {
+                e.preventDefault();
+            }
+        });
     </script>
 </body>
 </html>
