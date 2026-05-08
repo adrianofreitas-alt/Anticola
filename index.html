@@ -7,20 +7,18 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #202124; font-family: sans-serif; }
         
-        /* Estilo do Painel do Professor */
         #painel-professor { 
             padding: 50px; text-align: center; color: white; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh;
         }
-        input { width: 80%; max-width: 600px; padding: 15px; border-radius: 8px; border: none; margin: 20px 0; font-size: 1em; }
-        .btn-iniciar { background: #00c853; color: white; border: none; padding: 15px 40px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.2em; }
+        input { width: 80%; max-width: 600px; padding: 15px; border-radius: 8px; border: 2px solid #00c853; margin: 20px 0; font-size: 1em; outline: none; }
+        .btn-iniciar { background: #00c853; color: white; border: none; padding: 15px 40px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.2em; transition: 0.3s; }
+        .btn-iniciar:hover { background: #00a443; transform: scale(1.05); }
 
-        /* Estilo da Prova */
         #container-prova { width: 100%; height: 100vh; display: none; transition: filter 0.3s; }
         iframe { width: 100%; height: 100%; border: none; }
         .blurred { filter: blur(25px); pointer-events: none; }
         
-        /* Aviso de Bloqueio */
         #aviso { 
             display: none; position: fixed; top: 50%; left: 50%; 
             transform: translate(-50%, -50%); background: white; 
@@ -35,17 +33,15 @@
 
     <div id="painel-professor">
         <h1>🛡️ Painel Anticola</h1>
-        <p>Cole abaixo o link do Google Forms para blindar a prova:</p>
-        <input type="text" id="url-forms" placeholder="https://docs.google.com/forms/d/e/...">
+        <p>Cole o link do Google Forms abaixo para iniciar:</p>
+        <input type="text" id="url-forms" placeholder="Pressione Ctrl+V aqui para colar o link">
         <button class="btn-iniciar" onclick="iniciarProva()">INICIAR PROVA BLINDADA</button>
-        <p style="font-size: 0.8em; color: #888; margin-top: 20px;">Dica: Use o "Link Curto" ou o link normal do botão Enviar.</p>
     </div>
 
     <div id="aviso">
         <h2>⚠️ ACESSO INTERROMPIDO</h2>
-        <p>Você tentou sair da aba da prova.</p>
+        <p>Você saiu da aba da prova.</p>
         <div id="contador-texto"><span id="num-saidas">0</span></div>
-        <p>Solicite a liberação ao professor.</p>
         <button class="btn-liberar" onclick="voltar()">LIBERAR ACESSO</button>
     </div>
 
@@ -56,6 +52,7 @@
     <script>
         let contador = 0;
         let provaIniciada = false;
+        const inputUrl = document.getElementById('url-forms');
         const painel = document.getElementById('painel-professor');
         const container = document.getElementById('container-prova');
         const frame = document.getElementById('prova-frame');
@@ -63,19 +60,14 @@
         const display = document.getElementById('num-saidas');
 
         function iniciarProva() {
-            const url = document.getElementById('url-forms').value;
+            const url = inputUrl.value;
             if (url.includes("docs.google.com/forms")) {
                 frame.src = url;
                 painel.style.display = "none";
                 container.style.display = "block";
                 provaIniciada = true;
-                
-                // Entra em tela cheia para dificultar ainda mais a cola
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen();
-                }
             } else {
-                alert("Por favor, cole um link válido do Google Forms.");
+                alert("Link inválido! Certifique-se de colar um link do Google Forms.");
             }
         }
 
@@ -96,13 +88,20 @@
             if (document.hidden) { bloquear(); }
         });
 
-        // Bloqueios de segurança
-        document.addEventListener('contextmenu', e => e.preventDefault());
+        // BLOQUEIO INTELIGENTE: Só permite colar se o campo de texto estiver selecionado
         document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 't')) {
+            if (e.ctrlKey && e.key === 'v') {
+                if (document.activeElement !== inputUrl) {
+                    e.preventDefault(); // Bloqueia colar na prova
+                }
+            }
+            // Bloqueia Ctrl+C sempre
+            if (e.ctrlKey && e.key === 'c') {
                 e.preventDefault();
             }
         });
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
 </html>
