@@ -14,7 +14,6 @@
             transform: translate(-50%, -50%); background: white; 
             padding: 30px; border-radius: 15px; text-align: center; 
             box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 9999; 
-            min-width: 300px;
         }
         #contador-texto { color: red; font-size: 1.5em; font-weight: bold; margin: 15px 0; }
         button { background: #1a73e8; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
@@ -24,44 +23,50 @@
 
     <div id="aviso">
         <h2>⚠️ Atividade Suspensa!</h2>
-        <p>Você saiu da tela da prova para buscar outras informações.</p>
+        <p>Você saiu da aba da prova. O desvio foi registrado.</p>
         <div id="contador-texto">Total de desvios: <span id="num-saidas">0</span></div>
-        <p><small>Este histórico será revisado pelo professor.</small></p>
         <button onclick="voltar()">Retomar Prova</button>
     </div>
 
     <div id="container-prova">
-        <iframe id="prova-frame" src="https://docs.google.com/forms/d/e/1FAIpQLSdwDAfMUikrnlBUGRH5EVXVNTS5YUeETe71S37Opd2-3xnhCQ/viewform?usp=header"></iframe>
+        <iframe id="prova-frame" src="https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform?usp=pp_url&entry.1741517036=0"></iframe>
     </div>
 
     <script>
-        const container = document.getElementById('container-prova');
+        const frame = document.getElementById('prova-frame');
         const aviso = document.getElementById('aviso');
         const displayContador = document.getElementById('num-saidas');
         let contador = 0;
 
+        // O link base do seu formulário (já configurado para a sua pergunta ID_SISTEMA)
+        const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform?usp=pp_url&entry.1741517036=";
+
         function bloquear() {
-            contador++; // Soma 1 toda vez que sai
-            displayContador.innerText = contador; // Atualiza o número na tela
-            container.classList.add('blurred');
+            contador++;
+            displayContador.innerText = contador;
+            
+            // Atualiza o link do iframe com o novo número de saídas sem recarregar a página toda
+            // Isso garante que quando ele enviar, o número atualizado vá junto
+            frame.src = baseUrl + contador;
+            
+            document.getElementById('container-prova').classList.add('blurred');
             aviso.style.display = 'block';
         }
 
         function voltar() {
-            container.classList.remove('blurred');
+            document.getElementById('container-prova').classList.remove('blurred');
             aviso.style.display = 'none';
         }
 
-        // Detecta se mudou de aba ou minimizou
         document.addEventListener("visibilitychange", function() {
             if (document.hidden) {
                 bloquear();
             }
         });
 
-        // Bloqueio básico de teclas (Ctrl+C, Ctrl+V)
+        // Bloqueio de teclas de atalho
         document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && (e.key === 'c' || e.key === 'v')) {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 't' || e.key === 'n')) {
                 e.preventDefault();
             }
         });
