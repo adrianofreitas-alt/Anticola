@@ -6,29 +6,15 @@
     <title>Sistema Anticola - Professor Adriano</title>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #202124; font-family: sans-serif; }
-        
-        /* Painel Inicial Totalmente Liberado */
-        #painel-professor { 
-            padding: 50px; text-align: center; color: white; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh;
-        }
+        #painel-professor { padding: 50px; text-align: center; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; }
         .container-input { width: 80%; max-width: 600px; display: flex; gap: 10px; margin: 20px 0; }
         input { flex: 1; padding: 15px; border-radius: 8px; border: 2px solid #00c853; font-size: 1em; outline: none; }
-        
         .btn-colar { background: #555; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
         .btn-iniciar { background: #00c853; color: white; border: none; padding: 15px 40px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.2em; }
-
-        /* Prova Blindada */
         #container-prova { width: 100%; height: 100vh; display: none; }
         iframe { width: 100%; height: 100%; border: none; }
         .blurred { filter: blur(25px); pointer-events: none; }
-        
-        #aviso { 
-            display: none; position: fixed; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); background: white; 
-            padding: 30px; border-radius: 15px; text-align: center; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 9999; 
-        }
+        #aviso { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 9999; }
         #contador-texto { color: red; font-size: 2.5em; font-weight: bold; margin: 15px 0; }
         .btn-liberar { background: #d93025; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
@@ -37,9 +23,9 @@
 
     <div id="painel-professor">
         <h1>🛡️ Painel Anticola</h1>
-        <p>Cole o link do Forms (Use o botão Colar se o Ctrl+V falhar):</p>
+        <p>Cole o link "Preenchido Previamente" (com o final 999):</p>
         <div class="container-input">
-            <input type="text" id="url-forms" placeholder="https://docs.google.com/forms/...">
+            <input type="text" id="url-forms" placeholder="https://docs.google.com/forms/...entry.123=999">
             <button class="btn-colar" onclick="colarLink()">Colar</button>
         </div>
         <button class="btn-iniciar" onclick="iniciarProva()">INICIAR PROVA BLINDADA</button>
@@ -47,9 +33,9 @@
 
     <div id="aviso">
         <h2>⚠️ ACESSO INTERROMPIDO</h2>
-        <p>Desvio de tela detectado.</p>
+        <p>Saída de tela detectada.</p>
         <div id="contador-texto"><span id="num-saidas">0</span></div>
-        <button class="btn-liberar" onclick="voltar()">LIBERAR ACESSO</button>
+        <button class="btn-liberar" onclick="voltar()">REGISTRAR E LIBERAR</button>
     </div>
 
     <div id="container-prova">
@@ -59,28 +45,28 @@
     <script>
         let contador = 0;
         let provaIniciada = false;
+        let linkOriginal = "";
         const inputUrl = document.getElementById('url-forms');
+        const frame = document.getElementById('prova-frame');
 
-        // Função para colar via botão (contorna bloqueios de navegador)
         async function colarLink() {
             try {
                 const text = await navigator.clipboard.readText();
                 inputUrl.value = text;
-            } catch (err) {
-                alert("Clique na caixa e tente Ctrl+V. Se não der, digite o início do link.");
-            }
+            } catch (err) { alert("Use Ctrl+V na caixa de texto."); }
         }
 
         function iniciarProva() {
-            const url = inputUrl.value;
-            if (url.includes("docs.google.com/forms")) {
-                document.getElementById('prova-frame').src = url;
+            linkOriginal = inputUrl.value;
+            if (linkOriginal.includes("999")) {
+                // Configura o link inicial com zero
+                frame.src = linkOriginal.replace("999", "0");
                 document.getElementById('painel-professor').style.display = "none";
                 document.getElementById('container-prova').style.display = "block";
                 provaIniciada = true;
-                ativarTravas(); // Só ativa os bloqueios agora!
+                ativarTravas();
             } else {
-                alert("Cole um link válido do Google Forms.");
+                alert("ERRO: Você deve colar o link que geramos com o código '999' para o relatório funcionar!");
             }
         }
 
@@ -88,6 +74,9 @@
             if (!provaIniciada) return;
             contador++;
             document.getElementById('num-saidas').innerText = contador;
+            // Atualiza o link do formulário com o número real de colas
+            frame.src = linkOriginal.replace("999", contador);
+            
             document.getElementById('container-prova').classList.add('blurred');
             document.getElementById('aviso').style.display = 'block';
         }
@@ -98,16 +87,10 @@
         }
 
         function ativarTravas() {
-            document.addEventListener("visibilitychange", function() {
-                if (document.hidden) { bloquear(); }
-            });
-
+            document.addEventListener("visibilitychange", () => { if (document.hidden) bloquear(); });
             document.addEventListener('contextmenu', e => e.preventDefault());
-            
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 't')) {
-                    e.preventDefault();
-                }
+            document.addEventListener('keydown', e => {
+                if (e.ctrlKey && (e.key === 'c' || e.key === 'v')) e.preventDefault();
             });
         }
     </script>
