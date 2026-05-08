@@ -2,121 +2,30 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Avaliação Oficial - Sistema de Integridade</title>
+    <title>Avaliação Oficial - Anticola</title>
     <style>
-        /* Reset e Estilo Base */
-        body, html {
-            margin: 0; padding: 0; height: 100%; overflow: hidden;
-            background-color: #202124; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none; -webkit-user-select: none;
-        }
-
-        /* Moldura da Prova */
-        #container-prova {
-            width: 100%; height: 100vh; transition: filter 0.3s ease;
-        }
-
-        iframe {
-            width: 100%; height: 100%; border: none;
-        }
-
-        /* Efeito de Embaçamento */
-        .blurred {
-            filter: blur(25px) grayscale(100%);
-            pointer-events: none;
-        }
-
-        /* Banner de Aviso */
-        #aviso-saida {
-            display: none; position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background: white;
-            padding: 30px; border-radius: 15px; text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 9999;
-            width: 80%; max-width: 400px;
-        }
-
-        #aviso-saida h2 { color: #d93025; margin-top: 0; }
-        #btn-voltar {
-            background: #1a73e8; color: white; border: none;
-            padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold;
-        }
-
-        /* Esconder tudo na impressão */
-        @media print {
-            body { display: none !important; }
-        }
+        body, html { margin: 0; padding: 0; height: 100%; background: #202124; font-family: sans-serif; overflow: hidden; }
+        #container-prova { width: 100%; height: 100vh; transition: filter 0.3s; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .blurred { filter: blur(20px); pointer-events: none; }
+        #aviso { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; text-align: center; z-index: 9999; }
+        button { background: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-
-    <div id="aviso-saida">
+    <div id="aviso">
         <h2>Atividade Suspensa!</h2>
-        <p>Detectamos que você saiu da página da prova.</p>
-        <p><strong>Total de desvios: <span id="contador-display">0</span></strong></p>
-        <p style="font-size: 0.8em; color: #666;">O professor foi notificado desta tentativa.</p>
-        <button id="btn-voltar" onclick="voltarParaProva()">Retomar Prova</button>
+        <p>Você saiu da aba da prova. O desvio foi registrado.</p>
+        <button onclick="voltar()">Retomar Prova</button>
     </div>
-
     <div id="container-prova">
-        <iframe id="google-form" src="LINK_DO_SEU_FORMULARIO_AQUI"></iframe>
+        <iframe src="COLE_AQUI_O_LINK_DO_SEU_FORMULARIO"></iframe>
     </div>
-
     <script>
-        let contadorSaidas = 0;
-        const container = document.getElementById('container-prova');
-        const aviso = document.getElementById('aviso-saida');
-        const displayContador = document.getElementById('contador-display');
-
-        // 1. FUNÇÃO PARA BLOQUEAR A TELA
-        function bloquearTela() {
-            contadorSaidas++;
-            displayContador.innerText = contadorSaidas;
-            container.classList.add('blurred');
-            aviso.style.display = 'block';
-            
-            // Log no console (pode ser enviado para um banco de dados se necessário)
-            console.warn(`Desvio detectado #${contadorSaidas}`);
-        }
-
-        function voltarParaProva() {
-            container.classList.remove('blurred');
-            aviso.style.display = 'none';
-        }
-
-        // 2. DETECTOR DE TROCA DE ABA OU MINIMIZAÇÃO (CELULAR E PC)
-        document.addEventListener("visibilitychange", function() {
-            if (document.hidden) {
-                bloquearTela();
-            }
-        });
-
-        // Detector de perda de foco da janela
-        window.onblur = function() {
-            bloquearTela();
-        };
-
-        // 3. BLOQUEIO DE CLIQUES E TECLAS (PC)
-        document.addEventListener('contextmenu', event => event.preventDefault());
-
-        document.addEventListener('keydown', function(e) {
-            // Bloqueia F12, Ctrl+Shift+I, Ctrl+U, Ctrl+P, PrintScreen
-            if (
-                e.key === "PrintScreen" || 
-                e.keyCode === 44 ||
-                (e.ctrlKey && (e.key === 'p' || e.key === 'u' || e.key === 's')) ||
-                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))
-            ) {
-                alert("Ação Bloqueada pelo Sistema de Segurança!");
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // 4. PREVENÇÃO ADICIONAL PARA CELULAR
-        // Impede arrastar para atualizar (Pull-to-refresh)
-        document.body.style.overscrollBehavior = 'contain';
-        
+        function bloquear() { document.getElementById('container-prova').classList.add('blurred'); document.getElementById('aviso').style.display = 'block'; }
+        function voltar() { document.getElementById('container-prova').classList.remove('blurred'); document.getElementById('aviso').style.display = 'none'; }
+        window.onblur = bloquear;
+        document.addEventListener("visibilitychange", function() { if (document.hidden) bloquear(); });
     </script>
 </body>
 </html>
