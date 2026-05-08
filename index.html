@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avaliação Oficial - Sistema Anticola</title>
+    <title>Avaliação Corrente Alternada - Anticola</title>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #202124; font-family: sans-serif; overflow: hidden; }
         #container-prova { width: 100%; height: 100vh; transition: filter 0.3s; }
@@ -15,40 +15,33 @@
             padding: 30px; border-radius: 15px; text-align: center; 
             box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 9999; 
         }
-        #contador-texto { color: red; font-size: 1.5em; font-weight: bold; margin: 15px 0; }
+        #contador-texto { color: red; font-size: 2em; font-weight: bold; margin: 15px 0; }
         button { background: #1a73e8; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="aviso">
-        <h2>⚠️ Atividade Suspensa!</h2>
-        <p>Você saiu da aba da prova. O desvio foi registrado.</p>
-        <div id="contador-texto">Total de desvios: <span id="num-saidas">0</span></div>
+        <h2>⚠️ ATIVIDADE SUSPENSA</h2>
+        <p>Você saiu da aba da prova para pesquisar.</p>
+        <p>Número de desvios registrados:</p>
+        <div id="contador-texto"><span id="num-saidas">0</span></div>
+        <p><strong>INSTRUÇÃO:</strong> No final da prova, escreva este número no campo "ID_SISTEMA".</p>
         <button onclick="voltar()">Retomar Prova</button>
     </div>
 
     <div id="container-prova">
-        <iframe id="prova-frame" src="https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform?usp=pp_url&entry.1741517036=0"></iframe>
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform"></iframe>
     </div>
 
     <script>
-        const frame = document.getElementById('prova-frame');
-        const aviso = document.getElementById('aviso');
-        const displayContador = document.getElementById('num-saidas');
         let contador = 0;
-
-        // O link base do seu formulário (já configurado para a sua pergunta ID_SISTEMA)
-        const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform?usp=pp_url&entry.1741517036=";
+        const aviso = document.getElementById('aviso');
+        const display = document.getElementById('num-saidas');
 
         function bloquear() {
             contador++;
-            displayContador.innerText = contador;
-            
-            // Atualiza o link do iframe com o novo número de saídas sem recarregar a página toda
-            // Isso garante que quando ele enviar, o número atualizado vá junto
-            frame.src = baseUrl + contador;
-            
+            display.innerText = contador;
             document.getElementById('container-prova').classList.add('blurred');
             aviso.style.display = 'block';
         }
@@ -59,16 +52,7 @@
         }
 
         document.addEventListener("visibilitychange", function() {
-            if (document.hidden) {
-                bloquear();
-            }
-        });
-
-        // Bloqueio de teclas de atalho
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 't' || e.key === 'n')) {
-                e.preventDefault();
-            }
+            if (document.hidden) { bloquear(); }
         });
     </script>
 </body>
