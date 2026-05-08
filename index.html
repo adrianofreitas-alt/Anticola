@@ -3,74 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avaliação Oficial - Sistema Anticola</title>
+    <title>Sistema Anticola - Professor Adriano</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #202124; font-family: sans-serif; overflow: hidden; }
-        #container-prova { width: 100%; height: 100vh; transition: filter 0.3s; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #202124; font-family: sans-serif; }
+        
+        /* Estilo do Painel do Professor */
+        #painel-professor { 
+            padding: 50px; text-align: center; color: white; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh;
+        }
+        input { width: 80%; max-width: 600px; padding: 15px; border-radius: 8px; border: none; margin: 20px 0; font-size: 1em; }
+        .btn-iniciar { background: #00c853; color: white; border: none; padding: 15px 40px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.2em; }
+
+        /* Estilo da Prova */
+        #container-prova { width: 100%; height: 100vh; display: none; transition: filter 0.3s; }
         iframe { width: 100%; height: 100%; border: none; }
         .blurred { filter: blur(25px); pointer-events: none; }
+        
+        /* Aviso de Bloqueio */
         #aviso { 
             display: none; position: fixed; top: 50%; left: 50%; 
             transform: translate(-50%, -50%); background: white; 
             padding: 30px; border-radius: 15px; text-align: center; 
             box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 9999; 
-            min-width: 350px;
         }
-        #contador-texto { color: red; font-size: 2em; font-weight: bold; margin: 15px 0; }
-        .btn-liberar { background: #d93025; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1em; }
-        .btn-liberar:hover { background: #b21f16; }
+        #contador-texto { color: red; font-size: 2.5em; font-weight: bold; margin: 15px 0; }
+        .btn-liberar { background: #d93025; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
+    <div id="painel-professor">
+        <h1>🛡️ Painel Anticola</h1>
+        <p>Cole abaixo o link do Google Forms para blindar a prova:</p>
+        <input type="text" id="url-forms" placeholder="https://docs.google.com/forms/d/e/...">
+        <button class="btn-iniciar" onclick="iniciarProva()">INICIAR PROVA BLINDADA</button>
+        <p style="font-size: 0.8em; color: #888; margin-top: 20px;">Dica: Use o "Link Curto" ou o link normal do botão Enviar.</p>
+    </div>
+
     <div id="aviso">
-        <h2>⚠️ ACESSO BLOQUEADO</h2>
-        <p>Você saiu da aba da prova. O desvio foi contabilizado.</p>
-        <p>Total de saídas registradas:</p>
+        <h2>⚠️ ACESSO INTERROMPIDO</h2>
+        <p>Você tentou sair da aba da prova.</p>
         <div id="contador-texto"><span id="num-saidas">0</span></div>
-        <p>Clique abaixo para registrar e liberar a prova:</p>
-        <button class="btn-liberar" onclick="voltar()">SOLICITAR LIBERAÇÃO</button>
+        <p>Solicite a liberação ao professor.</p>
+        <button class="btn-liberar" onclick="voltar()">LIBERAR ACESSO</button>
     </div>
 
     <div id="container-prova">
-        <iframe id="prova-frame" src="https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform?usp=pp_url&entry.1741517036=0"></iframe>
+        <iframe id="prova-frame" src=""></iframe>
     </div>
 
     <script>
         let contador = 0;
+        let provaIniciada = false;
+        const painel = document.getElementById('painel-professor');
+        const container = document.getElementById('container-prova');
         const frame = document.getElementById('prova-frame');
         const aviso = document.getElementById('aviso');
         const display = document.getElementById('num-saidas');
 
-        // Link base do seu formulário com o campo ID_SISTEMA
-        const formsBase = "https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform?usp=pp_url&entry.1741517036=";
+        function iniciarProva() {
+            const url = document.getElementById('url-forms').value;
+            if (url.includes("docs.google.com/forms")) {
+                frame.src = url;
+                painel.style.display = "none";
+                container.style.display = "block";
+                provaIniciada = true;
+                
+                // Entra em tela cheia para dificultar ainda mais a cola
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                }
+            } else {
+                alert("Por favor, cole um link válido do Google Forms.");
+            }
+        }
 
         function bloquear() {
+            if (!provaIniciada) return;
             contador++;
             display.innerText = contador;
-            document.getElementById('container-prova').classList.add('blurred');
+            container.classList.add('blurred');
             aviso.style.display = 'block';
         }
 
         function voltar() {
-            // Atualiza o link do formulário com o novo número ANTES de liberar
-            // Isso faz com que o campo ID_SISTEMA no Forms seja preenchido sozinho
-            frame.src = formsBase + contador;
-            
-            document.getElementById('container-prova').classList.remove('blurred');
+            container.classList.remove('blurred');
             aviso.style.display = 'none';
         }
 
         document.addEventListener("visibilitychange", function() {
-            if (document.hidden) { 
-                bloquear(); 
-            }
+            if (document.hidden) { bloquear(); }
         });
 
-        // Impede o uso do botão direito e atalhos de cópia
-        document.addEventListener('contextmenu', event => event.preventDefault());
+        // Bloqueios de segurança
+        document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'u')) {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 't')) {
                 e.preventDefault();
             }
         });
