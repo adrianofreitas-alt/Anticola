@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avaliação Corrente Alternada - Anticola</title>
+    <title>Avaliação Oficial - Sistema Anticola</title>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #202124; font-family: sans-serif; overflow: hidden; }
         #container-prova { width: 100%; height: 100vh; transition: filter 0.3s; }
@@ -14,30 +14,36 @@
             transform: translate(-50%, -50%); background: white; 
             padding: 30px; border-radius: 15px; text-align: center; 
             box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 9999; 
+            min-width: 350px;
         }
         #contador-texto { color: red; font-size: 2em; font-weight: bold; margin: 15px 0; }
-        button { background: #1a73e8; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-liberar { background: #d93025; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1em; }
+        .btn-liberar:hover { background: #b21f16; }
     </style>
 </head>
 <body>
 
     <div id="aviso">
-        <h2>⚠️ ATIVIDADE SUSPENSA</h2>
-        <p>Você saiu da aba da prova para pesquisar.</p>
-        <p>Número de desvios registrados:</p>
+        <h2>⚠️ ACESSO BLOQUEADO</h2>
+        <p>Você saiu da aba da prova. O desvio foi contabilizado.</p>
+        <p>Total de saídas registradas:</p>
         <div id="contador-texto"><span id="num-saidas">0</span></div>
-        <p><strong>INSTRUÇÃO:</strong> No final da prova, escreva este número no campo "ID_SISTEMA".</p>
-        <button onclick="voltar()">Retomar Prova</button>
+        <p>Clique abaixo para registrar e liberar a prova:</p>
+        <button class="btn-liberar" onclick="voltar()">SOLICITAR LIBERAÇÃO</button>
     </div>
 
     <div id="container-prova">
-        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform"></iframe>
+        <iframe id="prova-frame" src="https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform?usp=pp_url&entry.1741517036=0"></iframe>
     </div>
 
     <script>
         let contador = 0;
+        const frame = document.getElementById('prova-frame');
         const aviso = document.getElementById('aviso');
         const display = document.getElementById('num-saidas');
+
+        // Link base do seu formulário com o campo ID_SISTEMA
+        const formsBase = "https://docs.google.com/forms/d/e/1FAIpQLScxoIL_t1im8jv_Xk5WkK8Sx_HYsH36c148hwflznv-djBplw/viewform?usp=pp_url&entry.1741517036=";
 
         function bloquear() {
             contador++;
@@ -47,12 +53,26 @@
         }
 
         function voltar() {
+            // Atualiza o link do formulário com o novo número ANTES de liberar
+            // Isso faz com que o campo ID_SISTEMA no Forms seja preenchido sozinho
+            frame.src = formsBase + contador;
+            
             document.getElementById('container-prova').classList.remove('blurred');
             aviso.style.display = 'none';
         }
 
         document.addEventListener("visibilitychange", function() {
-            if (document.hidden) { bloquear(); }
+            if (document.hidden) { 
+                bloquear(); 
+            }
+        });
+
+        // Impede o uso do botão direito e atalhos de cópia
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'u')) {
+                e.preventDefault();
+            }
         });
     </script>
 </body>
