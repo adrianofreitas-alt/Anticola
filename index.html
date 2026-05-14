@@ -3,104 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Avaliação Blindada - Prof. Adriano</title>
+    <title>Sistema Blindado v4 - Prof. Adriano</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #121212; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #121212; font-family: sans-serif; color: white; text-align: center; overflow: hidden; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 20px; border: 1px solid #333; max-width: 500px; margin: 50px auto; width: 90%; }
         
-        /* Painel do Professor */
-        #painel-professor { 
-            padding: 40px; text-align: center; color: white; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
-        }
-        .card { background: #1e1e1e; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
-        input { width: 100%; max-width: 500px; padding: 15px; border-radius: 8px; border: 2px solid #00c853; background: #2b2b2b; color: white; margin: 20px 0; font-size: 1em; }
-        .btn-iniciar { background: #00c853; color: white; border: none; padding: 15px 50px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.2em; transition: 0.3s; }
-        .btn-iniciar:hover { background: #00a443; transform: translateY(-2px); }
+        /* Área do Professor */
+        #setup-professor { border-bottom: 1px solid #444; margin-bottom: 20px; padding-bottom: 20px; }
+        input { width: 90%; padding: 12px; border-radius: 8px; border: 2px solid #00c853; background: #2b2b2b; color: white; margin-bottom: 15px; }
+        
+        /* Câmera e Botões */
+        video, canvas { width: 100%; max-width: 400px; border-radius: 10px; background: #000; transform: scaleX(-1); margin-top: 10px; }
+        .btn { padding: 15px 30px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; margin-top: 15px; width: 100%; font-size: 1.1em; }
+        .btn-config { background: #555; color: white; }
+        .btn-foto { background: #1a73e8; color: white; display: none; }
+        .btn-iniciar { background: #00c853; color: white; display: none; }
 
-        /* Container da Prova */
+        /* Prova e Avisos */
         #container-prova { width: 100%; height: 100vh; display: none; }
         iframe { width: 100%; height: 100%; border: none; }
         .blurred { filter: blur(30px); pointer-events: none; }
-        
-        /* Alerta de Bloqueio */
-        #aviso { 
-            display: none; position: fixed; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); background: #fff; 
-            padding: 40px; border-radius: 20px; text-align: center; 
-            box-shadow: 0 0 100px rgba(0,0,0,0.8); z-index: 9999; width: 320px;
-        }
-        h2 { color: #d32f2f; margin-top: 0; }
-        #contador-texto { color: #d32f2f; font-size: 4em; font-weight: bold; margin: 10px 0; }
-        .btn-liberar { background: #d32f2f; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1em; }
+        #aviso { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 20px; color: #000; z-index: 9999; }
     </style>
 </head>
 <body>
 
-    <div id="painel-professor">
+    <div id="painel-entrada">
         <div class="card">
-            <h1>🛡️ Blindagem de Prova</h1>
-            <p>Cole o link "Preenchido Previamente" (o que termina em 999):</p>
-            <input type="text" id="url-forms" placeholder="https://docs.google.com/forms/...">
-            <br>
-            <button class="btn-iniciar" onclick="iniciarProva()">CONFIGURAR E INICIAR</button>
+            <div id="setup-professor">
+                <h3>⚙️ Painel do Professor</h3>
+                <input type="text" id="url-input" placeholder="Cole o link do Forms aqui...">
+                <button class="btn btn-config" onclick="configurarProva()">TRAVAR PROVA PARA O ALUNO</button>
+            </div>
+
+            <div id="area-aluno" style="display:none">
+                <h1>✍️ Avaliação Online</h1>
+                <p>Prepare-se: A câmera será acionada para identificação.</p>
+                
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas" style="display:none"></canvas>
+
+                <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">BATER FOTO DE IDENTIFICAÇÃO</button>
+                <button class="btn btn-iniciar" id="btn-start" onclick="iniciarProva()">INICIAR AGORA</button>
+            </div>
         </div>
     </div>
 
     <div id="aviso">
-        <h2>⚠️ BLOQUEADO</h2>
-        <p>Você saiu da tela da prova!</p>
-        <div id="contador-texto"><span id="num-saidas">0</span></div>
-        <p>Este número será enviado no campo ID_SISTEMA.</p>
-        <button class="btn-liberar" onclick="voltar()">VOLTAR PARA A AVALIAÇÃO</button>
+        <h2 style="color:red">⚠️ BLOQUEADO</h2>
+        <p>Saída de tela detectada!</p>
+        <div style="font-size:3em; font-weight:bold" id="num-saidas">0</div>
+        <button style="padding:10px 20px" onclick="voltar()">VOLTAR PARA PROVA</button>
     </div>
 
     <div id="container-prova">
-        <iframe id="prova-frame" src="" allow="geolocation; microphone; camera"></iframe>
+        <iframe id="prova-frame" src=""></iframe>
     </div>
 
     <script>
         let contador = 0;
         let linkOriginal = "";
-        const frame = document.getElementById('prova-frame');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
 
-        function iniciarProva() {
-            let urlInput = document.getElementById('url-forms').value.trim();
-            
-            if (urlInput.includes("999")) {
-                linkOriginal = urlInput;
-                // Garante que o Forms peça o e-mail se estiver configurado
-                frame.src = linkOriginal.replace("999", "0");
+        // Função do Professor
+        function configurarProva() {
+            linkOriginal = document.getElementById('url-input').value.trim();
+            if (linkOriginal.includes("entry.")) {
+                document.getElementById('setup-professor').style.display = "none";
+                document.getElementById('area-aluno').style.display = "block";
+                document.getElementById('btn-snap').style.display = "block";
                 
-                document.getElementById('painel-professor').style.display = "none";
-                document.getElementById('container-prova').style.display = "block";
-                
-                ativarSeguranca();
+                // Liga a câmera
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => { video.srcObject = stream; })
+                    .catch(err => { alert("Câmera necessária!"); });
             } else {
-                alert("Atenção: Use o link gerado com o valor 999 para que o relatório funcione corretamente.");
+                alert("Por favor, cole um link válido gerado pelo Script.");
             }
         }
 
+        // Função do Aluno (Foto)
+        function tirarFoto() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+            document.getElementById('btn-snap').innerText = "TIRAR OUTRA FOTO";
+            document.getElementById('btn-start').style.display = 'block';
+        }
+
+        // Início da Prova
+        function iniciarProva() {
+            document.getElementById('painel-entrada').style.display = "none";
+            document.getElementById('container-prova').style.display = "block";
+            document.getElementById('prova-frame').src = linkOriginal;
+            
+            ativarSeguranca();
+        }
+
         function ativarSeguranca() {
-            // Detecta saída da aba imediatamente
-            document.addEventListener("visibilitychange", function() {
+            document.addEventListener("visibilitychange", () => {
                 if (document.hidden) {
                     contador++;
                     document.getElementById('num-saidas').innerText = contador;
-                    
-                    // Atualiza o link do formulário automaticamente com o novo contador
-                    // Isso força o Google Forms a registrar o valor atualizado
-                    frame.src = linkOriginal.replace("999", contador);
+                    // Atualiza o link automaticamente no iframe
+                    let novoLink = linkOriginal.replace(/=\d+$/, "=" + contador);
+                    document.getElementById('prova-frame').src = novoLink;
                     
                     document.getElementById('container-prova').classList.add('blurred');
                     document.getElementById('aviso').style.display = 'block';
-                }
-            });
-
-            // Bloqueia clique direito e atalhos de cópia
-            document.addEventListener('contextmenu', e => e.preventDefault());
-            document.addEventListener('keydown', e => {
-                if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'u')) {
-                    e.preventDefault();
                 }
             });
         }
