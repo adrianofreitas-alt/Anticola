@@ -9,7 +9,17 @@
         .card { background: #1e1e1e; padding: 30px; border-radius: 20px; border: 1px solid #333; max-width: 500px; margin: 30px auto; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         input { width: 95%; padding: 12px; border-radius: 8px; border: 2px solid #1a73e8; background: #2b2b2b; color: white; margin-bottom: 15px; }
         .url-gerada { background: #000; padding: 15px; border-radius: 5px; color: #00c853; word-break: break-all; font-family: monospace; font-size: 11px; border: 1px solid #00c853; cursor: pointer; }
-        video { width: 100%; max-width: 350px; border-radius: 10px; background: #000; transform: scaleX(-1); }
+        
+        /* AJUSTE SOLICITADO: Diminuí o tamanho de 350px para 200px e apliquei ao canvas também */
+        video, #canvas { 
+            width: 100%; 
+            max-width: 200px; 
+            border-radius: 10px; 
+            background: #000; 
+            margin: 0 auto 15px auto;
+        }
+        video { transform: scaleX(-1); }
+
         .btn { padding: 15px 25px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 1em; margin-top: 10px; transition: 0.2s; }
         .btn-gerar { background: #1a73e8; color: white; }
         .btn-foto { background: #f4b400; color: #000; }
@@ -20,11 +30,10 @@
     </style>
 </head>
 <body>
-
     <div id="interface-usuario">
         <div class="card">
             <div id="secao-professor">
-                <h2>👨‍🏫 Gerador de Link Blindado</h2>
+                <h2> 👨‍🏫 Gerador de Link Blindado</h2>
                 <p style="font-size: 0.9em; color: #ccc;">Cole o link que termina em <b>=0</b></p>
                 <input type="text" id="input-forms" placeholder="https://docs.google.com/forms/d/e/.../viewform?usp=pp_url&entry.123=0">
                 <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
@@ -33,9 +42,8 @@
                     <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
                 </div>
             </div>
-
             <div id="secao-aluno" style="display:none">
-                <h1>📸 Identificação</h1>
+                <h1> 📸 Identificação</h1>
                 <p>Capture sua foto para liberar a prova.</p>
                 <video id="video" autoplay playsinline></video>
                 <canvas id="canvas" style="display:none"></canvas>
@@ -46,7 +54,7 @@
     </div>
 
     <div id="aviso-bloqueio">
-        <h1 style="color:red;">⚠️ TENTATIVA DE COLA</h1>
+        <h1 style="color:red;"> ⚠️ TENTATIVA DE COLA</h1>
         <p>Você saiu da página! O formulário foi resetado por segurança.</p>
         <div style="font-size:4em; color:white; font-weight: bold;" id="contagem-saidas">0</div>
         <p>Preencha seu nome e e-mail novamente.</p>
@@ -61,11 +69,9 @@
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
 
-        // Tenta ler o link da prova na URL
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const provaUrl = urlParams.get('prova');
-            
             if (provaUrl) {
                 linkDaProvaPura = decodeURIComponent(provaUrl);
                 document.getElementById('secao-professor').style.display = "none";
@@ -77,15 +83,12 @@
         function gerarLinkAcesso() {
             let urlForms = document.getElementById('input-forms').value.trim();
             if (urlForms.includes("http")) {
-                // Garante que o link seja o de visualização (viewform)
                 if (urlForms.includes("/edit")) {
-                    alert("Você colou o link de edição! Use o link de visualização (enviado pelo Script).");
+                    alert("Você colou o link de edição! Use o link de visualização.");
                     return;
                 }
-                
                 const siteUrl = window.location.href.split('?')[0];
                 const linkCompleto = siteUrl + "?prova=" + encodeURIComponent(urlForms);
-                
                 document.getElementById('link-final-texto').innerText = linkCompleto;
                 document.getElementById('resultado-link').style.display = "block";
             } else { alert("Cole um link válido."); }
@@ -98,27 +101,26 @@
 
         function ligarCamera() {
             navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => { document.getElementById('video').srcObject = stream; })
-                .catch(err => { console.log("Câmera não iniciada"); });
+            .then(stream => { document.getElementById('video').srcObject = stream; })
+            .catch(err => { console.log("Câmera não iniciada"); });
         }
 
         function tirarFoto() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth; 
+            canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            video.style.display = 'none'; canvas.style.display = 'block';
+            video.style.display = 'none'; 
+            canvas.style.display = 'inline-block'; // Mantém centralizado
             document.getElementById('btn-start').style.display = 'block';
         }
 
         function validarEIniciar() {
             document.getElementById('interface-usuario').style.display = "none";
             document.getElementById('container-prova').style.display = "block";
-            
-            // Carrega o link com um bypass de cache
             let urlFinal = linkDaProvaPura + (linkDaProvaPura.includes('?') ? '&' : '?') + "embedded=true";
             document.getElementById('prova-frame').src = urlFinal;
-            
             ativarSeguranca();
         }
 
@@ -127,12 +129,8 @@
                 if (document.hidden) {
                     contadorSaidas++;
                     document.getElementById('contagem-saidas').innerText = contadorSaidas;
-                    
-                    // Lógica de Reset e Incremento de Cola
                     let linkBase = linkDaProvaPura.replace(/=\d+$/, "=" + contadorSaidas);
-                    // Força o reset total do Forms
                     document.getElementById('prova-frame').src = linkBase + "&refresh=" + Date.now();
-                    
                     document.getElementById('container-prova').style.display = "none";
                     document.getElementById('aviso-bloqueio').style.display = "flex";
                 }
@@ -146,3 +144,6 @@
     </script>
 </body>
 </html>
+
+
+       
