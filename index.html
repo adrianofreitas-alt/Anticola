@@ -29,10 +29,9 @@
             border: 1px solid #00c853; cursor: pointer; 
         }
 
-        /* Ajuste de tamanho da câmera/foto */
         video, #canvas { 
             width: 100%; 
-            max-width: 180px; /* Reduzido para ganhar espaço */
+            max-width: 180px; 
             border-radius: 10px; 
             background: #000; 
             margin: 5px auto; 
@@ -40,13 +39,11 @@
         }
         video { transform: scaleX(-1); }
 
-        /* Estilo dos botões */
         .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95em; margin-top: 8px; transition: 0.2s; }
         .btn-gerar { background: #1a73e8; color: white; }
         .btn-foto { background: #f4b400; color: #000; }
         .btn-iniciar { background: #00c853; color: white; display: none; }
 
-        /* Responsividade Extra para Celulares Pequenos */
         @media (max-width: 400px) {
             .card { padding: 15px; margin: 10px auto; }
             video, #canvas { max-width: 140px; }
@@ -102,6 +99,7 @@
     <script>
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
+        let segurancaAtiva = false; // Evita duplicar a escuta do evento
 
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -150,27 +148,44 @@
         function validarEIniciar() {
             document.getElementById('interface-usuario').style.display = "none";
             document.getElementById('container-prova').style.display = "block";
-            let urlFinal = linkDaProvaPura + (linkDaProvaPura.includes('?') ? '&' : '?') + "embedded=true";
-            document.getElementById('prova-frame').src = urlFinal;
+            atualizarIframe();
             ativarSeguranca();
         }
 
+        function atualizarIframe() {
+            // Substitui o final do link original (ex: =0) pelo contador atualizado de saídas
+            let linkModificado = linkDaProvaPura.replace(/=\d+$/, "=" + contadorSaidas);
+            
+            // Garante que o 'embedded=true' e um anti-cache 'refresh' sejam anexados corretamente
+            let separador = linkModificado.includes('?') ? '&' : '?';
+            let urlFinal = linkModificado + separador + "embedded=true&refresh=" + Date.now();
+            
+            document.getElementById('prova-frame').src = urlFinal;
+        }
+
         function ativarSeguranca() {
+            if (segurancaAtiva) return; // Se já estiver ativo, não adiciona outro listener
+            segurancaAtiva = true;
+
             document.addEventListener("visibilitychange", function() {
-                if (document.hidden) {
+                // Só conta a saída se o container da prova estiver visível (evita loop ao clicar em recomeçar)
+                if (document.hidden && document.getElementById('container-prova').style.display === "block") {
                     contadorSaidas++;
                     document.getElementById('contagem-saidas').innerText = contadorSaidas;
-                    let linkBase = linkDaProvaPura.replace(/=\d+$/, "=" + contadorSaidas);
-                    document.getElementById('prova-frame').src = linkBase + "&refresh=" + Date.now();
+                    
+                    // Esconde a prova e mostra a tela de bloqueio
                     document.getElementById('container-prova').style.display = "none";
                     document.getElementById('aviso-bloqueio').style.display = "flex";
+                    
+                    // Atualiza o iframe com o novo link punitivo por trás dos panos
+                    atualizarIframe();
                 }
             });
         }
 
         function desbloquear() {
-            document.getElementById('container-prova').style.display = "block";
             document.getElementById('aviso-bloqueio').style.display = "none";
+            document.getElementById('container-prova').style.display = "block";
         }
     </script>
 </body>
