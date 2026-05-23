@@ -161,9 +161,42 @@
             let urlFinal = linkModificado + separador + "embedded=true&refresh=" + Date.now();
             
             document.getElementById('prova-frame').src = urlFinal;
-        }
+         function ativarSeguranca() {
+            if (segurancaAtiva) return; // Se já estiver ativo, não adiciona outro listener
+            segurancaAtiva = true;
 
-        function ativarSeguranca() {
+            document.addEventListener("visibilitychange", function() {
+                // Só conta a saída se o container da prova estiver visível
+                if (document.hidden && document.getElementById('container-prova').style.display === "block") {
+                    contadorSaidas++;
+                    document.getElementById('contagem-saidas').innerText = contadorSaidas;
+                    
+                    // --- NOVA CONEXÃO DIRETA COM A SUA PLANILHA ---
+                    const urlAppWeb = "COLE_AQUI_O_SEU_LINK_DO_APP_DA_WEB"; 
+                    
+                    if(urlAppWeb.includes("script.google.com")) {
+                        fetch(urlAppWeb, {
+                            method: "POST",
+                            mode: "no-cors",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ 
+                                "status": "Saída do Ecrã", 
+                                "totalSaidas": contadorSaidas 
+                            })
+                        }).catch(err => console.log("Erro no envio:", err));
+                    }
+                    // ----------------------------------------------
+                    
+                    // Esconde a prova e mostra a tela de bloqueio
+                    document.getElementById('container-prova').style.display = "none";
+                    document.getElementById('aviso-bloqueio').style.display = "flex";
+                    
+                    // Atualiza o iframe com o novo link
+                    atualizarIframe();
+                }
+            });
+        }
+       
             if (segurancaAtiva) return; // Se já estiver ativo, não adiciona outro listener
             segurancaAtiva = true;
 
