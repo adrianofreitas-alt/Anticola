@@ -88,8 +88,8 @@
         <iframe id="prova-frame" src="" allow="camera"></iframe>
     </div>
     <script>
-        // link da API gerada na implantação da sua Planilha do Google Apps Script
-        const URL_API_PLANILHA = 'https://script.google.com/macros/s/AKfycbxvOWlw3k2OIJhhrQ5uet0P3Xy8gmfrC9MDkx50-qZJNDsqRq_2RJAXwPhJ7_UgS0xZ/exec';
+        // URL da API gerada oficialmente a partir da sua planilha
+        const URL_API_AUDITORIA = 'https://script.google.com/macros/s/AKfycbxmcTKdPT56io4KxOOojD_OmtxqwUwN8IFuPj6_Nat3LpMMBEHR_6vVw7RVZbNTS6hQ8w/exec';
 
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
@@ -137,17 +137,15 @@
         function validarEIniciar() {
             document.getElementById('interface-usuario').style.display = "none";
             document.getElementById('container-prova').style.display = "block";
-            atualizarIframe();
+            
+            // O link carregado no iframe passa a ser sempre o link limpo e imutável
+            let separador = linkDaProvaPura.includes('?') ? '&' : '?';
+            document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
+            
             ativarSeguranca();
             
-            // Envia o registro inicial (0 desvios) assim que entra na prova
-            enviarDadosParaPlanilha();
-        }
-        function atualizarIframe() {
-            let linkModificado = linkDaProvaPura.replace(/=\d+$/, "=" + contadorSaidas);
-            let separador = linkModificado.includes('?') ? '&' : '?';
-            let urlFinal = linkModificado + separador + "embedded=true&refresh=" + Date.now();
-            document.getElementById('prova-frame').src = urlFinal;
+            // Registra a entrada do aluno de forma segura (acao=registro_inicial)
+            notificarServidor('registro_inicial');
         }
         function ativarSeguranca() {
             if (segurancaAtiva) return; 
@@ -156,31 +154,35 @@
                 if (document.hidden && document.getElementById('container-prova').style.display === "block") {
                     contadorSaidas++;
                     document.getElementById('contagem-saidas').innerText = contadorSaidas;
+                    
                     document.getElementById('container-prova').style.display = "none";
                     document.getElementById('aviso-bloqueio').style.display = "flex";
-                    atualizarIframe();
                     
-                    // Envia a atualização em tempo real para a planilha informando a nova saída
-                    enviarDadosParaPlanilha();
+                    // Notifica estritamente que ocorreu um desvio (acao=alerta_desvio)
+                    notificarServidor('alerta_desvio');
                 }
             });
         }
         function desbloquear() {
             document.getElementById('aviso-bloqueio').style.display = "none";
             document.getElementById('container-prova').style.display = "block";
+            
+            let separador = linkDaProvaPura.includes('?') ? '&' : '?';
+            document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
-        // Nova função interna para envio silencioso à API de auditoria
-        function enviarDadosParaPlanilha() {
-            let urlSincronismo = URL_API_PLANILHA + 
-                "?email=" + encodeURIComponent("aluno@teste.com") + 
-                "&nome=" + encodeURIComponent("Aluno Teste") + 
-                "&id_sistema=" + encodeURIComponent("ID-MÓVEL") + 
-                "&desvios=" + encodeURIComponent(contadorSaidas);
+        // Função isolada e independente de envio de dados para a API
+        function notificarServidor(tipoAcao) {
+            // Captura estritamente os metadados fixos do ambiente do teste
+            let urlFinalEnvio = URL_API_AUDITORIA + 
+                "?email=" + encodeURIComponent("adriano.hennemann@gmail.com") + 
+                "&nome=" + encodeURIComponent("Adriano") + 
+                "&id_sistema=" + encodeURIComponent("Render-ID") + 
+                "&acao=" + encodeURIComponent(tipoAcao);
 
-            fetch(urlSincronismo, { mode: 'no-cors' })
-            .then(() => console.log('Sincronizado com sucesso.'))
-            .catch(err => console.error('Erro de rede:', err));
+            fetch(urlFinalEnvio, { mode: 'no-cors' })
+            .then(() => console.log('Evento sincronizado: ' + tipoAcao))
+            .catch(err => console.error('Falha de sincronismo:', err));
         }
     </script>
 </body>
