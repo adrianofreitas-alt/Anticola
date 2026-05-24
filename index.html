@@ -61,7 +61,7 @@
         <div class="card">
             <div id="secao-professor">
                 <h2>👨‍🏫 Gerador de Link</h2>
-                <p style="color: #ccc;">Cole o link do forms que contém as variáveis de controle</p>
+                <p style="color: #ccc;">Cole o link que termina em <b>=0</b></p>
                 <input type="text" id="input-forms" placeholder="Link do forms...">
                 <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
                 <div id="resultado-link" style="display:none; margin-top:10px;">
@@ -90,7 +90,7 @@
     <script>
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
-        let segurancaAtiva = false; // Evita duplicar a escuta do evento
+        let segurancaAtiva = false; 
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const provaUrl = urlParams.get('prova');
@@ -136,56 +136,52 @@
             atualizarIframe();
             ativarSeguranca();
         }
-
-        // ==========================================
-        // ESTA É A ÚNICA FUNÇÃO QUE FOI CORRIGIDA 
-        // Mantém a injeção punitiva original de forma compatível com o Google Forms
-        // ==========================================
+        
         function atualizarIframe() {
+            // Encontra e atualiza o padrão dinamicamente, lidando com chaves no formato entry.ID=0 ou similares
             let linkModificado = linkDaProvaPura;
-            
-            // Procura dinamicamente pelo último parâmetro entry.ID que termina com =0 ou com qualquer número e substitui pelo contador real
-            if (linkModificado.match(/entry\.\d+=\d+/g)) {
-                let matches = linkModificado.match(/entry\.\d+=/g);
-                let ultimoParametro = matches[matches.length - 1]; // Pega o campo CONTADOR_DESVIOS
-                
-                // Reconstrói a string substituindo especificamente o valor do último campo cadastrado
-                let partes = linkModificado.split(ultimoParametro);
-                let resto = partes[1].replace(/^\d+/, contadorSaidas);
-                linkModificado = partes[0] + ultimoParametro + resto;
+            let regexForms = /(entry\.\d+=)(\d+)/g;
+
+            if (linkModificado.match(regexForms)) {
+                // Substitui dinamicamente o valor numérico atrelado à chave do Forms
+                linkModificado = linkModificado.replace(regexForms, function(match, p1, p2) {
+                    return p1 + contadorSaidas;
+                });
             } else {
-                // Caso o link colado não siga o padrão esperado, aplica o fallback original do seu sistema
+                // Fallback original para o padrão final comum do seu escopo
                 linkModificado = linkDaProvaPura.replace(/=\d+$/, "=" + contadorSaidas);
             }
 
-            // Garante que o 'embedded=true' e o anti-cache 'refresh' continuem funcionando como você projetou
             let separador = linkModificado.includes('?') ? '&' : '?';
-            let urlFinal = linkModificado + separador + "embedded=true&refresh=" + Date.now();
+            // Adiciona a quebra de cache temporal "t" para forçar o carregamento do formulário
+            let urlFinal = linkModificado + separador + "embedded=true&t=" + Date.now();
             
             document.getElementById('prova-frame').src = urlFinal;
         }
 
         function ativarSeguranca() {
-            if (segurancaAtiva) return; // Se já estiver ativo, não adiciona outro listener
+            if (segurancaAtiva) return; 
             segurancaAtiva = true;
             document.addEventListener("visibilitychange", function() {
-                // Só conta a saída se o container da prova estiver visível (evita loop ao clicar em recomeçar)
                 if (document.hidden && document.getElementById('container-prova').style.display === "block") {
                     contadorSaidas++;
                     document.getElementById('contagem-saidas').innerText = contadorSaidas;
                     
-                    // Esconde a prova e mostra a tela de bloqueio
                     document.getElementById('container-prova').style.display = "none";
                     document.getElementById('aviso-bloqueio').style.display = "flex";
-                    
-                    // Atualiza o iframe com o novo link punitivo por trás dos panos
-                    atualizarIframe();
                 }
             });
         }
+
+        // ==========================================
+        // MUDANÇA ESSENCIAL REALIZADA AQUI:
+        // Agora, ao clicar em recomeçar, ele limpa a tela de bloqueio,
+        // reconstrói a URL chamando a função e força o iframe a carregar com o dado novo!
+        // ==========================================
         function desbloquear() {
             document.getElementById('aviso-bloqueio').style.display = "none";
             document.getElementById('container-prova').style.display = "block";
+            atualizarIframe(); // <--- Força a injeção do valor atualizado no momento do retorno
         }
     </script>
 </body>
