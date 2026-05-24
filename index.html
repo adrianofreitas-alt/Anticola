@@ -6,54 +6,21 @@
     <title>Portal Anticola v5 - Prof. Adriano</title>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #121212; font-family: sans-serif; color: white; text-align: center; overflow-x: hidden; }
-        
-        .card { 
-            background: #1e1e1e; 
-            padding: 20px; 
-            border-radius: 20px; 
-            border: 1px solid #333; 
-            max-width: 500px; 
-            margin: 15px auto; 
-            width: 85%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-        }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 20px; border: 1px solid #333; max-width: 500px; margin: 15px auto; width: 85%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h1, h2 { margin-top: 0; font-size: 1.4em; }
         p { font-size: 0.9em; margin: 10px 0; }
         input { width: 90%; padding: 12px; border-radius: 8px; border: 2px solid #1a73e8; background: #2b2b2b; color: white; margin-bottom: 10px; }
-        
-        .url-gerada { 
-            background: #000; padding: 10px; border-radius: 5px; color: #00c853;
-            word-break: break-all; font-family: monospace; font-size: 10px;
-            border: 1px solid #00c853; cursor: pointer;
-        }
-        video, #canvas {
-            width: 100%;
-            max-width: 180px;
-            border-radius: 10px;
-            background: #000;
-            margin: 5px auto;
-            display: block;
-        }
+        .url-gerada { background: #000; padding: 10px; border-radius: 5px; color: #00c853; word-break: break-all; font-family: monospace; font-size: 10px; border: 1px solid #00c853; cursor: pointer; }
+        video, #canvas { width: 100%; max-width: 180px; border-radius: 10px; background: #000; margin: 5px auto; display: block; }
         video { transform: scaleX(-1); }
-        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95em; margin-top: 8px;
-            transition: 0.2s; }
+        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95em; margin-top: 8px; transition: 0.2s; }
         .btn-gerar { background: #1a73e8; color: white; }
         .btn-foto { background: #f4b400; color: #000; }
         .btn-iniciar { background: #00c853; color: white; display: none; }
-        @media (max-width: 400px) {
-            .card { padding: 15px; margin: 10px auto; }
-            video, #canvas { max-width: 140px; }
-            h1 { font-size: 1.2em; }
-            .btn { padding: 10px; font-size: 0.85em; }
-        }
+        @media (max-width: 400px) { .card { padding: 15px; margin: 10px auto; } video, #canvas { max-width: 140px; } h1 { font-size: 1.2em; } .btn { padding: 10px; font-size: 0.85em; } }
         #container-prova { width: 100%; height: 100vh; display: none; background: white; }
         iframe { width: 100%; height: 100%; border: none; }
-
-        #aviso-bloqueio {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999; justify-content: center;
-            align-items: center; flex-direction: column; padding: 20px;
-        }
+        #aviso-bloqueio { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
     </style>
 </head>
 <body>
@@ -71,7 +38,6 @@
             <div id="secao-aluno" style="display:none">
                 <h1>📸 Identificação</h1>
                 <p>Insira seus dados e tire uma foto para entrar.</p>
-                
                 <input type="text" id="aluno-nome" placeholder="Seu Nome Completo..." style="margin-bottom: 8px; border: 1px solid #444;">
                 <input type="email" id="aluno-email" placeholder="Seu E-mail Institucional..." style="margin-bottom: 12px; border: 1px solid #444;">
                 
@@ -130,9 +96,12 @@
         function tirarFoto() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            // Força um tamanho reduzido (320x240) para a imagem não travar o envio
+            canvas.width = 320;
+            canvas.height = 240;
+            canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
+            
             video.style.display = 'none';
             canvas.style.display = 'block';
             document.getElementById('btn-start').style.display = 'block';
@@ -155,7 +124,10 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
             
             ativarSeguranca();
-            notificarServidor('registro_inicial');
+            
+            // Extrai a imagem comprimida do canvas
+            let fotoBase64 = document.getElementById('canvas').toDataURL('image/jpeg', 0.6);
+            notificarServidor('registro_inicial', fotoBase64);
         }
 
         function ativarSeguranca() {
@@ -182,21 +154,37 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
-        // TÉCNICA INFALÍVEL: Bypassa bloqueios de CORS enviando a requisição como uma "imagem"
-        function notificarServidor(tipoAcao) {
+        function notificarServidor(tipoAcao, fotoBase64 = null) {
             let nomeVal = document.getElementById('aluno-nome').value.trim();
             let emailVal = document.getElementById('aluno-email').value.trim();
             
-            // Adicionado um carimbo de tempo (&t=...) para garantir que o navegador nunca puxe do cache antigo
-            let urlFinalEnvio = URL_API_AUDITORIA + 
-                "?email=" + encodeURIComponent(emailVal) + 
-                "&nome=" + encodeURIComponent(nomeVal) + 
-                "&id_sistema=" + encodeURIComponent("Render-ID") + 
-                "&acao=" + encodeURIComponent(tipoAcao) +
-                "&t=" + Date.now();
+            if (fotoBase64) {
+                // Para mandar a foto, usamos requisição POST (O tamanho da imagem exige isso)
+                let formData = new URLSearchParams();
+                formData.append('email', emailVal);
+                formData.append('nome', nomeVal);
+                formData.append('acao', tipoAcao);
+                formData.append('id_sistema', 'Render-ID');
+                formData.append('foto', fotoBase64);
 
-            let sinalizador = new Image();
-            sinalizador.src = urlFinalEnvio;
+                fetch(URL_API_AUDITORIA, {
+                    method: 'POST',
+                    mode: 'no-cors', // Evita bloqueio do navegador
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                });
+            } else {
+                // Se for só o aviso de desvio de tela, mantém o método Beacon infalível
+                let urlFinalEnvio = URL_API_AUDITORIA + 
+                    "?email=" + encodeURIComponent(emailVal) + 
+                    "&nome=" + encodeURIComponent(nomeVal) + 
+                    "&id_sistema=" + encodeURIComponent("Render-ID") + 
+                    "&acao=" + encodeURIComponent(tipoAcao) +
+                    "&t=" + Date.now();
+
+                let sinalizador = new Image();
+                sinalizador.src = urlFinalEnvio;
+            }
         }
     </script>
 </body>
