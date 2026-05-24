@@ -70,7 +70,11 @@
             </div>
             <div id="secao-aluno" style="display:none">
                 <h1>📸 Identificação</h1>
-                <p>Tire uma foto para entrar.</p>
+                <p>Insira seus dados e tire uma foto para entrar.</p>
+                
+                <input type="text" id="aluno-nome" placeholder="Seu Nome Completo..." style="margin-bottom: 8px; border: 1px solid #444;">
+                <input type="email" id="aluno-email" placeholder="Seu E-mail Institucional..." style="margin-bottom: 12px; border: 1px solid #444;">
+                
                 <video id="video" autoplay playsinline></video>
                 <canvas id="canvas" style="display:none"></canvas>
                 <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
@@ -135,17 +139,28 @@
             document.getElementById('btn-snap').innerText = "TIRAR OUTRA FOTO";
         }
         function validarEIniciar() {
+            let nomeVal = document.getElementById('aluno-nome').value.trim();
+            let emailVal = document.getElementById('aluno-email').value.trim();
+
+            if (!nomeVal || !emailVal) {
+                alert("Por favor, preencha seu Nome e E-mail antes de entrar.");
+                return;
+            }
+
             document.getElementById('interface-usuario').style.display = "none";
             document.getElementById('container-prova').style.display = "block";
             
-            // O link carregado no iframe passa a ser sempre o link limpo e imutável
             let separador = linkDaProvaPura.includes('?') ? '&' : '?';
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
             
             ativarSeguranca();
             
-            // Registra a entrada do aluno de forma segura (acao=registro_inicial)
+            // Envia o registro inicial baseado no que foi digitado
             notificarServidor('registro_inicial');
+        }
+        function activarSeguranca() {
+            // Mantida apenas para compatibilidade se houver chamadas externas
+            ativarSeguranca();
         }
         function ativarSeguranca() {
             if (segurancaAtiva) return; 
@@ -158,7 +173,6 @@
                     document.getElementById('container-prova').style.display = "none";
                     document.getElementById('aviso-bloqueio').style.display = "flex";
                     
-                    // Notifica estritamente que ocorreu um desvio (acao=alerta_desvio)
                     notificarServidor('alerta_desvio');
                 }
             });
@@ -171,18 +185,19 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
-        // Função isolada e independente de envio de dados para a API
         function notificarServidor(tipoAcao) {
-            // Captura estritamente os metadados fixos do ambiente do teste
+            let nomeVal = document.getElementById('aluno-nome').value.trim();
+            let emailVal = document.getElementById('aluno-email').value.trim();
+
             let urlFinalEnvio = URL_API_AUDITORIA + 
-                "?email=" + encodeURIComponent("adriano.hennemann@gmail.com") + 
-                "&nome=" + encodeURIComponent("Adriano") + 
+                "?email=" + encodeURIComponent(emailVal) + 
+                "&nome=" + encodeURIComponent(nomeVal) + 
                 "&id_sistema=" + encodeURIComponent("Render-ID") + 
                 "&acao=" + encodeURIComponent(tipoAcao);
 
             fetch(urlFinalEnvio, { mode: 'no-cors' })
-            .then(() => console.log('Evento sincronizado: ' + tipoAcao))
-            .catch(err => console.error('Falha de sincronismo:', err));
+            .then(() => console.log('Sincronizado: ' + tipoAcao))
+            .catch(err => console.error('Erro de rede:', err));
         }
     </script>
 </body>
