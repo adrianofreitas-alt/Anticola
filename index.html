@@ -92,7 +92,6 @@
         <iframe id="prova-frame" src="" allow="camera"></iframe>
     </div>
     <script>
-        // URL da API gerada oficialmente a partir da sua planilha
         const URL_API_AUDITORIA = 'https://script.google.com/macros/s/AKfycbxmcTKdPT56io4KxOOojD_OmtxqwUwN8IFuPj6_Nat3LpMMBEHR_6vVw7RVZbNTS6hQ8w/exec';
 
         let contadorSaidas = 0;
@@ -109,6 +108,7 @@
                 ligarCamera();
             }
         };
+        
         function gerarLinkAcesso() {
             let urlForms = document.getElementById('input-forms').value.trim();
             if (urlForms.includes("http")) {
@@ -138,6 +138,7 @@
             document.getElementById('btn-start').style.display = 'block';
             document.getElementById('btn-snap').innerText = "TIRAR OUTRA FOTO";
         }
+        
         function validarEIniciar() {
             let nomeVal = document.getElementById('aluno-nome').value.trim();
             let emailVal = document.getElementById('aluno-email').value.trim();
@@ -154,14 +155,9 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
             
             ativarSeguranca();
-            
-            // Envia o registro inicial baseado no que foi digitado
             notificarServidor('registro_inicial');
         }
-        function activarSeguranca() {
-            // Mantida apenas para compatibilidade se houver chamadas externas
-            ativarSeguranca();
-        }
+
         function ativarSeguranca() {
             if (segurancaAtiva) return; 
             segurancaAtiva = true;
@@ -177,6 +173,7 @@
                 }
             });
         }
+        
         function desbloquear() {
             document.getElementById('aviso-bloqueio').style.display = "none";
             document.getElementById('container-prova').style.display = "block";
@@ -185,19 +182,21 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
+        // TÉCNICA INFALÍVEL: Bypassa bloqueios de CORS enviando a requisição como uma "imagem"
         function notificarServidor(tipoAcao) {
             let nomeVal = document.getElementById('aluno-nome').value.trim();
             let emailVal = document.getElementById('aluno-email').value.trim();
-
+            
+            // Adicionado um carimbo de tempo (&t=...) para garantir que o navegador nunca puxe do cache antigo
             let urlFinalEnvio = URL_API_AUDITORIA + 
                 "?email=" + encodeURIComponent(emailVal) + 
                 "&nome=" + encodeURIComponent(nomeVal) + 
                 "&id_sistema=" + encodeURIComponent("Render-ID") + 
-                "&acao=" + encodeURIComponent(tipoAcao);
+                "&acao=" + encodeURIComponent(tipoAcao) +
+                "&t=" + Date.now();
 
-            fetch(urlFinalEnvio, { mode: 'no-cors' })
-            .then(() => console.log('Sincronizado: ' + tipoAcao))
-            .catch(err => console.error('Erro de rede:', err));
+            let sinalizador = new Image();
+            sinalizador.src = urlFinalEnvio;
         }
     </script>
 </body>
