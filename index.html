@@ -198,4 +198,24 @@
         
         function desbloquear() {
             document.getElementById('aviso-bloqueio').style.display = "none";
-            document.getElementById('container-prova').style
+            document.getElementById('container-prova').style.display = "block";
+            
+            let separador = linkDaProvaPura.includes('?') ? '&' : '?';
+            document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
+        }
+
+        // Bypassa bloqueios de requisição leve com Image()
+        function notificarServidor(tipoAcao) {
+            let urlFinalEnvio = URL_API_AUDITORIA + 
+                "?email=" + encodeURIComponent("adriano.hennemann@gmail.com") + 
+                "&nome=" + encodeURIComponent("Adriano") + 
+                "&id_sistema=" + encodeURIComponent("Render-ID") + 
+                "&acao=" + encodeURIComponent(tipoAcao) +
+                "&t=" + Date.now();
+
+            let sinalizador = new Image();
+            sinalizador.src = urlFinalEnvio;
+        }
+    </script>
+</body>
+</html>
