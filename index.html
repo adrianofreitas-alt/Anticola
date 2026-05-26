@@ -1,221 +1,83 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Anticola v5 - Prof. Adriano</title>
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #121212; font-family: sans-serif; color: white; text-align: center; overflow-x: hidden; }
-        
-        .card { 
-            background: #1e1e1e; 
-            padding: 20px; 
-            border-radius: 20px; 
-            border: 1px solid #333; 
-            max-width: 500px; 
-            margin: 15px auto; 
-            width: 85%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-        }
-        h1, h2 { margin-top: 0; font-size: 1.4em; }
-        p { font-size: 0.9em; margin: 10px 0; }
-        input { width: 90%; padding: 12px; border-radius: 8px; border: 2px solid #1a73e8; background: #2b2b2b; color: white; margin-bottom: 10px; }
-        
-        .url-gerada { 
-            background: #000; padding: 10px; border-radius: 5px; color: #00c853;
-            word-break: break-all; font-family: monospace; font-size: 10px;
-            border: 1px solid #00c853; cursor: pointer;
-        }
-        video, #canvas {
-            width: 100%;
-            max-width: 180px;
-            border-radius: 10px;
-            background: #000;
-            margin: 5px auto;
-            display: block;
-        }
-        video { transform: scaleX(-1); }
-        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95em; margin-top: 8px;
-            transition: 0.2s; }
-        .btn-gerar { background: #1a73e8; color: white; }
-        .btn-foto { background: #f4b400; color: #000; }
-        .btn-iniciar { background: #00c853; color: white; display: none; }
-        @media (max-width: 400px) {
-            .card { padding: 15px; margin: 10px auto; }
-            video, #canvas { max-width: 140px; }
-            h1 { font-size: 1.2em; }
-            .btn { padding: 10px; font-size: 0.85em; }
-        }
-        #container-prova { width: 100%; height: 100vh; display: none; background: white; }
-        iframe { width: 100%; height: 100%; border: none; }
+// ATENÇÃO: Se quiser organizar, crie uma pasta no Drive e cole o ID aqui. 
+// Deixe em branco "" para salvar na raiz.
+var FOLDER_ID = ""; 
 
-        #aviso-bloqueio {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999; justify-content: center;
-            align-items: center; flex-direction: column; padding: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div id="interface-usuario">
-        <div class="card">
-            <div id="secao-professor">
-                <h2>👨‍🏫 Gerador de Link</h2>
-                <p style="color: #ccc;">Cole o link que termina em <b>=0</b></p>
-                <input type="text" id="input-forms" placeholder="Link do forms...">
-                <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
-                <div id="resultado-link" style="display:none; margin-top:10px;">
-                    <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
-                </div>
-            </div>
-            <div id="secao-aluno" style="display:none">
-                <h1>📸 Identificação</h1>
-                <p>Tire uma foto para entrar.</p>
-                <video id="video" autoplay playsinline></video>
-                <canvas id="canvas" style="display:none"></canvas>
-                <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
-                <button class="btn btn-iniciar" id="btn-start" onclick="validarEIniciar()">ENTRAR NA PROVA</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="aviso-bloqueio">
-        <h1 style="color:red;">⚠️ ALERTA</h1>
-        <p>Você saiu da página! A prova foi resetada.</p>
-        <div style="font-size:3em; color:white; font-weight: bold;" id="contagem-saidas">0</div>
-        <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">RECOMEÇAR</button>
-    </div>
-    
-    <div id="container-prova">
-        <iframe id="prova-frame" src="" allow="camera"></iframe>
-    </div>
+function doGet(e) { return processRequest(e); }
+function doPost(e) { return processRequest(e); }
 
-    <script>
-        // Substitua esta URL caso mude a implantação do Apps Script
-        const URL_API_AUDITORIA = 'https://script.google.com/macros/s/AKfycbxmcTKdPT56io4KxOOojD_OmtxqwUwN8IFuPj6_Nat3LpMMBEHR_6vVw7RVZbNTS6hQ8w/exec';
+function processRequest(e) {
+  try {
+    var planilha = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Página1');
+    if (!planilha) return ContentService.createTextOutput("Aba Página1 não encontrada.");
 
-        let contadorSaidas = 0;
-        let linkDaProvaPura = "";
-        let segurancaAtiva = false; 
-        
-        window.onload = function() {
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const provaUrl = urlParams.get('prova');
-                if (provaUrl) {
-                    linkDaProvaPura = decodeURIComponent(provaUrl);
-                    document.getElementById('secao-professor').style.display = "none";
-                    document.getElementById('secao-aluno').style.display = "block";
-                    ligarCamera();
-                }
-            } catch (e) {
-                console.error("Erro ao processar URL:", e);
-            }
-        };
-        
-        function gerarLinkAcesso() {
-            let urlForms = document.getElementById('input-forms').value.trim();
-            if (urlForms.includes("http")) {
-                const siteUrl = window.location.href.split('?')[0];
-                const linkCompleto = siteUrl + "?prova=" + encodeURIComponent(urlForms);
-                document.getElementById('link-final-texto').innerText = linkCompleto;
-                document.getElementById('resultado-link').style.display = "block";
-            } else { 
-                alert("Cole um link válido do Google Forms."); 
-            }
-        }
-        
-        function copiarLink() {
-            const texto = document.getElementById('link-final-texto').innerText;
-            navigator.clipboard.writeText(texto).then(() => alert("Copiado com sucesso!"));
-        }
-        
-        function ligarCamera() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-            .then(stream => { 
-                document.getElementById('video').srcObject = stream; 
-            })
-            .catch(err => { 
-                alert("Para continuar, é obrigatório permitir o acesso à câmera."); 
-            });
-        }
-        
-        function tirarFoto() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            
-            // Compressão da imagem
-            canvas.width = 320;
-            canvas.height = 240;
-            canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
-            
-            video.style.display = 'none';
-            canvas.style.display = 'block';
-            document.getElementById('btn-start').style.display = 'block';
-            document.getElementById('btn-snap').innerText = "TIRAR OUTRA FOTO";
-        }
+    // Deteta se os dados vieram via GET leve (desvio) ou POST pesado (foto)
+    var params = (e.parameter && e.parameter.email) ? e.parameter : null;
 
-        function validarEIniciar() {
-            document.getElementById('interface-usuario').style.display = "none";
-            document.getElementById('container-prova').style.display = "block";
-            
-            let separador = linkDaProvaPura.includes('?') ? '&' : '?';
-            document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
-            
-            ativarSeguranca();
-            
-            // Reduz qualidade para 40% (0.4) para não pesar o envio
-            let fotoBase64 = document.getElementById('canvas').toDataURL('image/jpeg', 0.4);
-            
-            // Envio POST (invisível e robusto)
-            fetch(URL_API_AUDITORIA, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({
-                    email: "adriano.hennemann@gmail.com",
-                    nome: "Adriano",
-                    acao: 'registro_inicial',
-                    foto: fotoBase64
-                })
-            }).catch(err => console.log("Aviso de rede no envio da foto:", err));
-        }
+    if (!params && e.postData) {
+      // Tenta ler como JSON caso o navegador envie assim
+      try { params = JSON.parse(e.postData.contents); } catch(x) {}
+    }
 
-        function ativarSeguranca() {
-            if (segurancaAtiva) return; 
-            segurancaAtiva = true;
-            document.addEventListener("visibilitychange", function() {
-                if (document.hidden && document.getElementById('container-prova').style.display === "block") {
-                    contadorSaidas++;
-                    document.getElementById('contagem-saidas').innerText = contadorSaidas;
-                    
-                    document.getElementById('container-prova').style.display = "none";
-                    document.getElementById('aviso-bloqueio').style.display = "flex";
-                    
-                    notificarServidor('alerta_desvio');
-                }
-            });
-        }
+    var email = params.email || 'adriano.hennemann@gmail.com'; // Fixo para teste
+    var nome = params.nome || 'Adriano'; // Fixo para teste
+    var acao = params.acao;
+    var fotoBase64 = params.foto; // O texto da imagem comprimida
+    var dataHora = new Date();
+
+    var dados = planilha.getDataRange().getValues();
+    var linhaAluno = -1;
+
+    // Procura e-mail (Adriano) na Coluna C
+    for (var i = 1; i < dados.length; i++) {
+      if (dados[i][2] && dados[i][2].toString().toLowerCase() === email.toLowerCase()) {
+        linhaAluno = i + 1;
+        break;
+      }
+    }
+
+    var imagemFormula = "";
+    // Se temos foto comprimida (vindo do POST), salvamos no Drive
+    if (fotoBase64) {
+      try {
+        var imagemTexto = fotoBase64.split(',')[1] || fotoBase64;
+        var blob = Utilities.newBlob(Utilities.base64Decode(imagemTexto), 'image/jpeg', email + '_' + dataHora.getTime() + '.jpg');
         
-        function desbloquear() {
-            document.getElementById('aviso-bloqueio').style.display = "none";
-            document.getElementById('container-prova').style.display = "block";
-            
-            let separador = linkDaProvaPura.includes('?') ? '&' : '?';
-            document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
-        }
+        var pasta = (FOLDER_ID) ? DriveApp.getFolderById(FOLDER_ID) : DriveApp;
+        var arquivo = pasta.createFile(blob);
+        
+        // Define permissões para qualquer pessoa com o link ver (necessário para =IMAGE() funcionar na planilha)
+        arquivo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        
+        // Gera a fórmula para exibir a imagem na planilha
+        imagemFormula = '=IMAGE("' + arquivo.getDownloadUrl() + '")';
+      } catch(err_foto) {
+        imagemFormula = 'Erro na foto: ' + err_foto.toString();
+      }
+    }
 
-        // Bypassa bloqueios de requisição leve com Image()
-        function notificarServidor(tipoAcao) {
-            let urlFinalEnvio = URL_API_AUDITORIA + 
-                "?email=" + encodeURIComponent("adriano.hennemann@gmail.com") + 
-                "&nome=" + encodeURIComponent("Adriano") + 
-                "&id_sistema=" + encodeURIComponent("Render-ID") + 
-                "&acao=" + encodeURIComponent(tipoAcao) +
-                "&t=" + Date.now();
+    // Estrutura baseada em image_0.png:
+    // A: Foto (Formula IMAGE) | B: Data/Hora | C: Email | D: Nome | E: ID | F: Desvios
 
-            let sinalizador = new Image();
-            sinalizador.src = urlFinalEnvio;
-        }
-    </script>
-</body>
-</html>
+    if (linhaAluno === -1) {
+      // Cria linha limpa
+      planilha.appendRow([imagemFormula, dataHora, email, nome, 'Render-ID', 0]);
+    } else {
+      // Atualiza a foto se houver uma nova (no POST)
+      if (imagemFormula) {
+        planilha.getRange(linhaAluno, 1).setValue(imagemFormula); // Atualiza Coluna A
+      }
+      // Lida com desvios (no GET leve) na Coluna F
+      if (acao === 'alerta_desvio') {
+        var celulaDesvios = planilha.getRange(linhaAluno, 6); // Coluna F
+        var valorAtual = parseInt(celulaDesvios.getValue()) || 0;
+        celulaDesvios.setValue(valorAtual + 1);
+      }
+      // Sempre atualiza a data/hora na Coluna B
+      planilha.getRange(linhaAluno, 2).setValue(dataHora); 
+    }
+
+    return ContentService.createTextOutput("Sucesso").setMimeType(ContentService.MimeType.TEXT);
+  } catch(err) {
+    return ContentService.createTextOutput("Erro geral: " + err.toString());
+  }
+}
