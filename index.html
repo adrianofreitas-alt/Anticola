@@ -166,7 +166,7 @@
     <div class="container" id="interface-sistema">
         <div class="card">
             
-            <div id="secao-professor">
+            <div id="secao-professor" style="display:none;">
                 <h2>👨‍🏫 Gerador de Link de Acesso</h2>
                 <p>Cole abaixo o link do Google Forms da avaliação para gerar o acesso seguro do aluno.</p>
                 <div class="form-group">
@@ -216,26 +216,24 @@
         let URL_PROVA_FINAL = '';
         let alunoEmail = '';
         let alunoNome = '';
+        let totalDesvios = 0; // Contador em tempo real
 
-        // Controla o roteamento da tela baseado nos parâmetros da URL
+        // Gerenciador de visualização inicial
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const provaUrl = params.get('prova');
             
             if (provaUrl) {
-                // Se tem o parâmetro ?prova=, ativa o fluxo do aluno
                 URL_PROVA_FINAL = decodeURIComponent(provaUrl);
                 document.getElementById('secao-professor').style.display = 'none';
                 document.getElementById('secao-aluno').style.display = 'block';
                 configurarCamera();
             } else {
-                // Se não tem parâmetros, exibe a tela do professor tranquilamente
                 document.getElementById('secao-professor').style.display = 'block';
                 document.getElementById('secao-aluno').style.display = 'none';
             }
         });
 
-        // Função do Professor: Gera o link parametrizado
         function gerarLinkAcesso() {
             let urlForms = document.getElementById('input-forms').value.trim();
             if (urlForms.includes("http")) {
@@ -248,26 +246,23 @@
             }
         }
         
-        // Função do Professor: Copia o link gerado
         function copiarLink() {
             const texto = document.getElementById('link-final-texto').innerText;
-            navigator.clipboard.writeText(texto).then(() => alert("Link copiado com sucesso!"));
+            navigator.clipboard.writeText(texto).then(() => alert("Link copiado!"));
         }
 
-        // Configura e liga a Webcam do Aluno
         async function configurarCamera() {
             try {
                 streamMedia = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
                 document.getElementById('video').srcObject = streamMedia;
             } catch (err) {
-                console.error("Erro ao acessar câmera: ", err);
                 document.getElementById('status').style.color = 'var(--error)';
-                document.getElementById('status').innerText = 'Acesso à câmera negado. Ative as permissões do seu navegador.';
+                document.getElementById('status').innerText = 'Permita o acesso à câmera para prosseguir.';
                 document.getElementById('btn-entrar').disabled = true;
             }
         }
 
-        // Fluxo do Aluno: Captura foto e faz o envio dos dados reais
+        // Registro Inicial com Foto
         async function iniciarAvaliacao() {
             alunoNome = document.getElementById('nome').value.trim();
             alunoEmail = document.getElementById('email').value.trim();
@@ -276,13 +271,13 @@
 
             if (!alunoNome || !alunoEmail) {
                 statusDiv.style.color = 'var(--error)';
-                statusDiv.innerText = 'Por favor, digite seu nome e e-mail antes de avançar.';
+                statusDiv.innerText = 'Preencha seu nome e e-mail institucional.';
                 return;
             }
 
             btn.disabled = true;
             statusDiv.style.color = 'var(--text)';
-            statusDiv.innerText = 'Processando foto e registrando sua entrada...';
+            statusDiv.innerText = 'Registrando dados de entrada...';
 
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
@@ -290,7 +285,6 @@
             canvas.width = 640;
             canvas.height = 480;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
             const fotoBase64 = canvas.toDataURL('image/jpeg', 0.5);
 
             let formData = new URLSearchParams();
@@ -306,48 +300,48 @@
                     body: formData
                 });
 
-                statusDiv.innerText = 'Identidade confirmada! Abrindo prova...';
-                setTimeout(() => {
-                    liberarTelaProva();
-                }, 1200);
+                statusDiv.innerText = 'Sucesso! Iniciando prova...';
+                setTimeout(() => { liberarTelaProva(); }, 1000);
 
             } catch (error) {
-                console.error("Erro no envio:", error);
                 statusDiv.style.color = 'var(--error)';
-                statusDiv.innerText = 'Erro de comunicação. Verifique sua rede e tente de novo.';
+                statusDiv.innerText = 'Erro ao conectar. Tente novamente.';
                 btn.disabled = false;
             }
         }
 
-        // Transiciona a interface para exibir a avaliação no frame
         function liberarTelaProva() {
             if (streamMedia) {
                 streamMedia.getTracks().forEach(track => track.stop());
             }
-
             document.getElementById('interface-sistema').style.display = 'none';
             const frame = document.getElementById('frame-prova');
             frame.src = URL_PROVA_FINAL;
             frame.style.display = 'block';
 
+            // ATIVA O MONITORAMENTO CORRIGIDO AQUI
             ativarRastreamentoDesvios();
         }
 
-        // Rastreia e reporta saídas de aba
+        // FUNÇÃO CORRIGIDA: CAPTURA E ENVIA TODAS AS SAÍDAS SEM FALHAR
         function activarRastreamentoDesvios() {
-            let perdeuFoco = false;
-
             window.addEventListener('blur', () => {
-                if (!perdeuFoco) {
-                    perdeuFoco = true;
-                    
-                    const urlSinalizador = `${URL_API_AUDITORIA}?email=${encodeURIComponent(alunoEmail)}&nome=${encodeURIComponent(alunoNome)}&acao=alerta_desvio&t=${Date.now()}`;
-                    navigator.sendBeacon(urlSinalizador);
-                    
-                    alert("AVISO DE SEGURANÇA:\nDetectamos que você se ausentou da tela da prova. Essa ação foi adicionada ao relatório do professor.");
-                    
-                    setTimeout(() => { perdeuFoco = false; }, 1500);
-                }
+                totalDesvios++; // Soma mais uma saída na contagem
+                
+                console.log(`Desvio detectado número: ${totalDesvios}`);
+
+                // Correção crucial: Enviamos via FormData estruturado para o Beacon disparar um POST aceito pelo Google
+                const dadosDesvio = new URLSearchParams();
+                dadosDesvio.append('nome', alunoNome);
+                dadosDesvio.append('email', alunoEmail);
+                dadosDesvio.append('acao', 'alerta_desvio');
+                dadosDesvio.append('contagem', totalDesvios);
+
+                // Dispara instantaneamente em segundo plano para o Apps Script
+                navigator.sendBeacon(URL_API_AUDITORIA, dadosDesvio);
+                
+                // Alerta intimidador para o aluno saber que foi pego
+                alert(`⚠️ AVISO DE SEGURANÇA:\n\nVocê saiu da aba da prova!\nEsta é a sua ocorrência número ${totalDesvios}.\nO Professor Adriano foi notificado no painel de auditoria.`);
             });
         }
     </script>
