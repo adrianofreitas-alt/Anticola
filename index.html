@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Avaliação Segura</title>
+    <title>Portal Anticola - Prof. Adriano</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -23,10 +23,11 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        body {
+        body, html {
             background-color: var(--bg-color);
             color: var(--text);
             min-height: 100vh;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -36,7 +37,7 @@
 
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 550px;
             padding: 20px;
         }
 
@@ -46,7 +47,6 @@
             padding: 30px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
             text-align: center;
-            transition: all 0.3s ease;
         }
 
         h1, h2 {
@@ -57,30 +57,19 @@
         p {
             color: var(--text-muted);
             font-size: 14px;
-            margin-bottom: 25px;
-        }
-
-        .form-group {
-            text-align: left;
             margin-bottom: 20px;
         }
 
-        label {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-        }
-
-        input[type="text"], input[type="email"] {
+        input[type="text"] {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
             border: 2px solid #334155;
             background-color: #0f172a;
             color: var(--text);
-            font-size: 16px;
+            font-size: 15px;
             outline: none;
+            margin-bottom: 20px;
             transition: border-color 0.2s;
         }
 
@@ -88,45 +77,38 @@
             border-color: var(--primary);
         }
 
-        .camera-box {
+        video, #canvas {
             width: 100%;
-            max-width: 400px;
-            height: 300px;
-            background-color: #0f172a;
+            max-width: 240px;
             border-radius: 12px;
-            margin: 0 auto 25px auto;
-            overflow: hidden;
-            position: relative;
+            background-color: #0f172a;
+            margin: 10px auto 20px auto;
+            display: block;
             border: 2px solid #334155;
         }
+        
+        video { transform: scaleX(-1); }
 
-        video, canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        button {
+        .btn {
             width: 100%;
             padding: 14px;
-            background-color: var(--primary);
-            color: white;
             border: none;
             border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s;
+            margin-top: 10px;
         }
 
-        button:hover {
-            background-color: var(--primary-hover);
-        }
+        .btn-gerar { background-color: var(--primary); color: white; }
+        .btn-gerar:hover { background-color: var(--primary-hover); }
+        
+        .btn-foto { background-color: #f59e0b; color: #0f172a; }
+        .btn-foto:hover { background-color: #d97706; }
 
-        button:disabled {
-            background-color: #475569;
-            cursor: not-allowed;
-        }
+        .btn-iniciar { background-color: var(--success); color: white; display: none; }
+        .btn-iniciar:hover { background-color: #059669; }
 
         .url-gerada { 
             background: #0f172a; 
@@ -142,98 +124,97 @@
             text-align: left;
         }
 
-        #frame-prova {
-            display: none;
+        #container-prova { 
+            width: 100%; 
+            height: 100vh; 
+            display: none; 
+            background: white; 
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            border: none;
-            z-index: 9999;
-            background: white;
+            z-index: 99
         }
+        
+        iframe { width: 100%; height: 100%; border: none; }
 
-        .status-msg {
-            margin-top: 15px;
-            font-size: 14px;
-            font-weight: 500;
+        #aviso-bloqueio {
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: #090d16; 
+            z-index: 9999; 
+            justify-content: center;
+            align-items: center; 
+            flex-direction: column; 
+            padding: 20px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <div class="container" id="interface-sistema">
+    <div class="container" id="interface-usuario">
         <div class="card">
             
-            <div id="secao-professor" style="display:none;">
-                <h2>👨‍🏫 Gerador de Link de Acesso</h2>
-                <p>Cole abaixo o link do Google Forms da avaliação para gerar o acesso seguro do aluno.</p>
-                <div class="form-group">
-                    <label for="input-forms">Link do Google Forms</label>
-                    <input type="text" id="input-forms" placeholder="https://docs.google.com/forms/.../viewform">
-                </div>
-                <button onclick="gerarLinkAcesso()">Gerar Link do Aluno</button>
+            <div id="secao-professor">
+                <h2>👨‍🏫 Gerador de Link</h2>
+                <p>Cole o link pré-preenchido completo gerado pelo Google Forms</p>
+                <input type="text" id="input-forms" placeholder="Link completo do forms com os campos entry.ID...">
+                <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
                 
                 <div id="resultado-link" style="display:none;">
-                    <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
-                    <p style="margin-top: 8px; font-size: 12px; color: var(--success);">Clique no link verde acima para copiar.</p>
+                    <div class="url-generated-box" style="margin-top: 15px; text-align: left;">
+                        <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
+                        <p style="margin-top: 8px; font-size: 12px; color: var(--success); margin-bottom: 0;">Clique no link verde acima para copiar.</p>
+                    </div>
                 </div>
             </div>
 
-            <div id="secao-aluno" style="display:none;">
-                <h1>📸 Verificação de Identidade</h1>
-                <p>Preencha seus dados e posicione-se em frente à câmera para entrar na avaliação.</p>
-                
-                <div class="form-group">
-                    <label for="nome">Nome Completo</label>
-                    <input type="text" id="nome" placeholder="Digite seu nome completo" autocomplete="off">
-                </div>
-
-                <div class="form-group">
-                    <label for="email">E-mail Institucional</label>
-                    <input type="email" id="email" placeholder="Digite seu e-mail educacional" autocomplete="off">
-                </div>
-
-                <div class="camera-box">
-                    <video id="video" autoplay playsinline muted></video>
-                    <canvas id="canvas" style="display:none;"></canvas>
-                </div>
-
-                <button id="btn-entrar" onclick="iniciarAvaliacao()">Tirar Foto e Entrar na Prova</button>
+            <div id="secao-aluno" style="display:none">
+                <h1>📸 Identificação</h1>
+                <p>Tire uma foto para entrar na avaliação.</p>
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas" style="display:none"></canvas>
+                <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
+                <button class="btn btn-iniciar" id="btn-start" onclick="validarEIniciar()">ENTRAR NA PROVA</button>
             </div>
 
-            <div id="status" class="status-msg"></div>
         </div>
     </div>
 
-    <iframe id="frame-prova" src=""></iframe>
+    <div id="aviso-bloqueio">
+        <h1 style="color: var(--error); font-size: 40px; margin-bottom: 15px;">⚠️ ALERTA</h1>
+        <p style="font-size: 18px; color: var(--text);">Você saiu da página! A prova foi pausada.</p>
+        <p style="color: var(--text-muted);">Quantidade de saídas detectadas:</p>
+        <div style="font-size: 5rem; color: white; font-weight: bold; margin: 20px 0;" id="contagem-saidas">0</div>
+        <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">RECOMEÇAR</button>
+    </div>
+
+    <div id="container-prova">
+        <iframe id="prova-frame" src="" allow="camera; microphone"></iframe>
+    </div>
 
     <script>
-        const URL_API_AUDITORIA = 'https://script.google.com/macros/s/AKfycbxmcTKdPT56io4KxOOojD_OmtxqwUwN8IFuPj6_Nat3LpMMBEHR_6vVw7RVZbNTS6hQ8w/exec';
+        let contadorSaidas = 0;
+        let linkDaProvaPura = "";
+        let segurancaAtiva = false;
 
-        let streamMedia = null;
-        let URL_PROVA_FINAL = '';
-        let alunoEmail = '';
-        let alunoNome = '';
-        let totalDesvios = 0; // Contador em tempo real
-
-        // Gerenciador de visualização inicial
-        window.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const provaUrl = params.get('prova');
-            
+        // Roteamento original baseado na URL
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const provaUrl = urlParams.get('prova');
             if (provaUrl) {
-                URL_PROVA_FINAL = decodeURIComponent(provaUrl);
-                document.getElementById('secao-professor').style.display = 'none';
-                document.getElementById('secao-aluno').style.display = 'block';
-                configurarCamera();
-            } else {
-                document.getElementById('secao-professor').style.display = 'block';
-                document.getElementById('secao-aluno').style.display = 'none';
+                linkDaProvaPura = decodeURIComponent(provaUrl);
+                document.getElementById('secao-professor').style.display = "none";
+                document.getElementById('secao-aluno').style.display = "block";
+                ligarCamera();
             }
-        });
+        };
 
+        // Função do Professor para gerar o Link
         function gerarLinkAcesso() {
             let urlForms = document.getElementById('input-forms').value.trim();
             if (urlForms.includes("http")) {
@@ -242,107 +223,85 @@
                 document.getElementById('link-final-texto').innerText = linkCompleto;
                 document.getElementById('resultado-link').style.display = "block";
             } else { 
-                alert("Por favor, insira um link válido do Google Forms."); 
+                alert("Cole um link válido."); 
             }
         }
-        
+
         function copiarLink() {
             const texto = document.getElementById('link-final-texto').innerText;
-            navigator.clipboard.writeText(texto).then(() => alert("Link copiado!"));
+            navigator.clipboard.writeText(texto).then(() => alert("Copiado!"));
         }
 
-        async function configurarCamera() {
-            try {
-                streamMedia = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
-                document.getElementById('video').srcObject = streamMedia;
-            } catch (err) {
-                document.getElementById('status').style.color = 'var(--error)';
-                document.getElementById('status').innerText = 'Permita o acesso à câmera para prosseguir.';
-                document.getElementById('btn-entrar').disabled = true;
-            }
+        // Câmera do Aluno
+        function ligarCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(stream => { document.getElementById('video').srcObject = stream; })
+            .catch(err => { alert("Ligue a câmera para prosseguir."); });
         }
 
-        // Registro Inicial com Foto
-        async function iniciarAvaliacao() {
-            alunoNome = document.getElementById('nome').value.trim();
-            alunoEmail = document.getElementById('email').value.trim();
-            const btn = document.getElementById('btn-entrar');
-            const statusDiv = document.getElementById('status');
-
-            if (!alunoNome || !alunoEmail) {
-                statusDiv.style.color = 'var(--error)';
-                statusDiv.innerText = 'Preencha seu nome e e-mail institucional.';
-                return;
-            }
-
-            btn.disabled = true;
-            statusDiv.style.color = 'var(--text)';
-            statusDiv.innerText = 'Registrando dados de entrada...';
-
+        function tirarFoto() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 640;
-            canvas.height = 480;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const fotoBase64 = canvas.toDataURL('image/jpeg', 0.5);
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+            document.getElementById('btn-start').style.display = 'block';
+            document.getElementById('btn-snap').innerText = "TIRAR OUTRA FOTO";
+        }
 
-            let formData = new URLSearchParams();
-            formData.append('nome', alunoNome);
-            formData.append('email', alunoEmail);
-            formData.append('foto', fotoBase64);
-            formData.append('acao', 'registro_inicial');
+        // Validação e Inicialização
+        function validarEIniciar() {
+            document.getElementById('interface-usuario').style.display = "none";
+            document.getElementById('container-prova').style.display = "block";
+            atualizarIframe();
+            ativarSeguranca();
+        }
 
+        // Atualização dinâmica do Iframe com o contador de desvios original
+        function atualizarIframe() {
             try {
-                await fetch(URL_API_AUDITORIA, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: formData
-                });
-
-                statusDiv.innerText = 'Sucesso! Iniciando prova...';
-                setTimeout(() => { liberarTelaProva(); }, 1000);
-
-            } catch (error) {
-                statusDiv.style.color = 'var(--error)';
-                statusDiv.innerText = 'Erro ao conectar. Tente novamente.';
-                btn.disabled = false;
+                let urlObjeto = new URL(linkDaProvaPura);
+                let parametroDesvio = null;
+                for (let key of urlObjeto.searchParams.keys()) {
+                    if (key.startsWith("entry.")) {
+                        parametroDesvio = key;
+                    }
+                }
+                if (parametroDesvio) {
+                    urlObjeto.searchParams.set(parametroDesvio, contadorSaidas);
+                } else {
+                    urlObjeto.searchParams.set("desvios", contadorSaidas);
+                }
+                document.getElementById('prova-frame').src = urlObjeto.toString();
+            } catch(e) {
+                document.getElementById('prova-frame').src = linkDaProvaPura;
             }
         }
 
-        function liberarTelaProva() {
-            if (streamMedia) {
-                streamMedia.getTracks().forEach(track => track.stop());
-            }
-            document.getElementById('interface-sistema').style.display = 'none';
-            const frame = document.getElementById('frame-prova');
-            frame.src = URL_PROVA_FINAL;
-            frame.style.display = 'block';
-
-            // ATIVA O MONITORAMENTO CORRIGIDO AQUI
-            ativarRastreamentoDesvios();
+        // Ativação da Segurança Original por Blur
+        function ativarSeguranca() {
+            segurancaAtiva = true;
+            window.addEventListener('blur', tratarSaida);
         }
 
-        // FUNÇÃO CORRIGIDA: CAPTURA E ENVIA TODAS AS SAÍDAS SEM FALHAR
-        function activarRastreamentoDesvios() {
-            window.addEventListener('blur', () => {
-                totalDesvios++; // Soma mais uma saída na contagem
-                
-                console.log(`Desvio detectado número: ${totalDesvios}`);
+        // Tratamento de Saída Estrito
+        function tratarSaida() {
+            if (!segurancaAtiva) return;
+            contadorSaidas++;
+            document.getElementById('contagem-saidas').innerText = contadorSaidas;
+            document.getElementById('aviso-bloqueio').style.display = "flex";
+            document.getElementById('container-prova').style.display = "none";
+            segurancaAtiva = false;
+        }
 
-                // Correção crucial: Enviamos via FormData estruturado para o Beacon disparar um POST aceito pelo Google
-                const dadosDesvio = new URLSearchParams();
-                dadosDesvio.append('nome', alunoNome);
-                dadosDesvio.append('email', alunoEmail);
-                dadosDesvio.append('acao', 'alerta_desvio');
-                dadosDesvio.append('contagem', totalDesvios);
-
-                // Dispara instantaneamente em segundo plano para o Apps Script
-                navigator.sendBeacon(URL_API_AUDITORIA, dadosDesvio);
-                
-                // Alerta intimidador para o aluno saber que foi pego
-                alert(`⚠️ AVISO DE SEGURANÇA:\n\nVocê saiu da aba da prova!\nEsta é a sua ocorrência número ${totalDesvios}.\nO Professor Adriano foi notificado no painel de auditoria.`);
-            });
+        // Função de Recomeçar/Desbloquear
+        function desbloquear() {
+            document.getElementById('aviso-bloqueio').style.display = "none";
+            document.getElementById('container-prova').style.display = "block";
+            atualizarIframe();
+            setTimeout(() => { segurancaAtiva = true; }, 500);
         }
     </script>
 </body>
