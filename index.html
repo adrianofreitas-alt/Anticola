@@ -26,31 +26,29 @@
             word-break: break-all; font-family: monospace; font-size: 10px;
             border: 1px solid #00c853; cursor: pointer;
         }
-        video, #canvas { 
-            width: 100%; 
-            max-width: 180px; 
-            border-radius: 10px; 
-            background: #000; 
-            margin: 5px auto; 
+        video, #canvas {
+            width: 100%;
+            max-width: 180px;
+            border-radius: 10px;
+            background: #000;
+            margin: 5px auto;
             display: block;
         }
         video { transform: scaleX(-1); }
-        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95em; margin-top: 8px; transition: 0.2s; }
+        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95em; margin-top: 8px;
+            transition: 0.2s; }
         .btn-gerar { background: #1a73e8; color: white; }
         .btn-foto { background: #f4b400; color: #000; }
         .btn-iniciar { background: #00c853; color: white; display: none; }
-        
         @media (max-width: 400px) {
             .card { padding: 15px; margin: 10px auto; }
             video, #canvas { max-width: 140px; }
             h1 { font-size: 1.2em; }
             .btn { padding: 10px; font-size: 0.85em; }
         }
-        
-        /* CONTAINER ISOLADO QUE ENVOLVE O FORMS */
         #container-prova { width: 100%; height: 100vh; display: none; background: white; }
         iframe { width: 100%; height: 100%; border: none; }
-        
+
         #aviso-bloqueio {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999; justify-content: center;
@@ -59,27 +57,20 @@
     </style>
 </head>
 <body>
-
     <div id="interface-usuario">
         <div class="card">
             <div id="secao-professor">
                 <h2>👨‍🏫 Gerador de Link</h2>
-                <p style="color: #ccc;">Cole o link padrão do seu Google Forms</p>
-                <input type="text" id="input-forms" placeholder="Cole o link aqui...">
+                <p style="color: #ccc;">Cole o link que termina em <b>=0</b></p>
+                <input type="text" id="input-forms" placeholder="Link do forms...">
                 <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
                 <div id="resultado-link" style="display:none; margin-top:10px;">
                     <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
                 </div>
             </div>
-
             <div id="secao-aluno" style="display:none">
                 <h1>📸 Identificação</h1>
-                <p id="exibir-codigo-aluno" style="color: #f4b400; font-weight: bold; font-size: 1.2em;"></p>
-                <p>Insira seus dados e tire uma foto para entrar.</p>
-                
-                <input type="text" id="aluno-nome" placeholder="Seu Nome Completo..." style="margin-bottom: 8px; border: 1px solid #444;">
-                <input type="email" id="aluno-email" placeholder="Seu E-mail Institucional..." style="margin-bottom: 12px; border: 1px solid #444;">
-                
+                <p>Tire uma foto para entrar.</p>
                 <video id="video" autoplay playsinline></video>
                 <canvas id="canvas" style="display:none"></canvas>
                 <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
@@ -87,163 +78,144 @@
             </div>
         </div>
     </div>
-
+    
     <div id="aviso-bloqueio">
         <h1 style="color:red;">⚠️ ALERTA</h1>
-        <p>Você saiu da página! A prova foi de fato monitorada.</p>
+        <p>Você saiu da página! A prova foi resetada.</p>
         <div style="font-size:3em; color:white; font-weight: bold;" id="contagem-saidas">0</div>
         <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">RECOMEÇAR</button>
     </div>
-
+    
     <div id="container-prova">
         <iframe id="prova-frame" src="" allow="camera"></iframe>
     </div>
 
     <script>
-        // Use a URL da sua API gerada no Google Apps Script aqui:
+        // Substitua esta URL caso mude a implantação do Apps Script
         const URL_API_AUDITORIA = 'https://script.google.com/macros/s/AKfycbxmcTKdPT56io4KxOOojD_OmtxqwUwN8IFuPj6_Nat3LpMMBEHR_6vVw7RVZbNTS6hQ8w/exec';
-        
+
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
-        let codigoGeradoAluno = "";
-        let segurancaAtiva = false;
-
+        let segurancaAtiva = false; 
+        
         window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const provaUrl = urlParams.get('prova');
-            const idAluno = urlParams.get('idAluno');
-            
-            // Se a URL tiver os parâmetros, ativa o modo aluno, senão mantém na tela do professor para gerar
-            if (provaUrl) {
-                linkDaProvaPura = decodeURIComponent(provaUrl);
-                codigoGeradoAluno = idAluno ? decodeURIComponent(idAluno) : "000000";
-                
-                document.getElementById('secao-professor').style.display = "none";
-                document.getElementById('secao-aluno').style.display = "block";
-                document.getElementById('exibir-codigo-aluno').innerText = "Seu Código de Acesso: " + codigoGeradoAluno;
-                ligarCamera();
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const provaUrl = urlParams.get('prova');
+                if (provaUrl) {
+                    linkDaProvaPura = decodeURIComponent(provaUrl);
+                    document.getElementById('secao-professor').style.display = "none";
+                    document.getElementById('secao-aluno').style.display = "block";
+                    ligarCamera();
+                }
+            } catch (e) {
+                console.error("Erro ao processar URL:", e);
             }
         };
-
-        // GERAÇÃO DO NOVO CÓDIGO E LINK DO ALUNO
+        
         function gerarLinkAcesso() {
             let urlForms = document.getElementById('input-forms').value.trim();
             if (urlForms.includes("http")) {
                 const siteUrl = window.location.href.split('?')[0];
-                
-                // Gera um código numérico aleatório de 6 dígitos para o ID_ALUNO_SISTEMA
-                const numAleatorio = Math.floor(100000 + Math.random() * 900000);
-                
-                // Concatena no link do aluno
-                const linkCompleto = siteUrl + "?prova=" + encodeURIComponent(urlForms) + "&idAluno=" + numAleatorio;
-                
+                const linkCompleto = siteUrl + "?prova=" + encodeURIComponent(urlForms);
                 document.getElementById('link-final-texto').innerText = linkCompleto;
                 document.getElementById('resultado-link').style.display = "block";
             } else { 
-                alert("Por favor, cole um link válido (contendo http ou https)."); 
+                alert("Cole um link válido do Google Forms."); 
             }
         }
-
+        
         function copiarLink() {
             const texto = document.getElementById('link-final-texto').innerText;
-            navigator.clipboard.writeText(texto).then(() => alert("Link copiado para a área de transferência!"));
+            navigator.clipboard.writeText(texto).then(() => alert("Copiado com sucesso!"));
         }
-
+        
         function ligarCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-            .then(stream => { document.getElementById('video').srcObject = stream; })
-            .catch(err => { alert("Acesso à câmera é obrigatório para prosseguir."); });
+            .then(stream => { 
+                document.getElementById('video').srcObject = stream; 
+            })
+            .catch(err => { 
+                alert("Para continuar, é obrigatório permitir o acesso à câmera."); 
+            });
         }
-
+        
         function tirarFoto() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            // Compressão da imagem
+            canvas.width = 320;
+            canvas.height = 240;
+            canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
+            
             video.style.display = 'none';
             canvas.style.display = 'block';
             document.getElementById('btn-start').style.display = 'block';
             document.getElementById('btn-snap').innerText = "TIRAR OUTRA FOTO";
         }
 
-        // LIBERAÇÃO DO CONTAINER DO GOOGLE FORMS
         function validarEIniciar() {
-            let nomeVal = document.getElementById('aluno-nome').value.trim();
-            let emailVal = document.getElementById('aluno-email').value.trim();
-            if (!nomeVal || !emailVal) {
-                alert("Por favor, preencha seu Nome e E-mail antes de entrar.");
-                return;
-            }
-            
-            // Oculta a interface do portal e exibe o container do forms isolado
             document.getElementById('interface-usuario').style.display = "none";
             document.getElementById('container-prova').style.display = "block";
-
-            // Abre o formulário limpo, injetando uma quebra de cache
+            
             let separador = linkDaProvaPura.includes('?') ? '&' : '?';
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
-
+            
             ativarSeguranca();
             
-            // Notifica o Excel de forma assíncrona: Ação Inicial = Envia '0' desvios
-            notificarServidor('0'); 
+            // Reduz qualidade para 40% (0.4) para não pesar o envio
+            let fotoBase64 = document.getElementById('canvas').toDataURL('image/jpeg', 0.4);
+            
+            // Envio POST (invisível e robusto)
+            fetch(URL_API_AUDITORIA, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    email: "adriano.hennemann@gmail.com",
+                    nome: "Adriano",
+                    acao: 'registro_inicial',
+                    foto: fotoBase64
+                })
+            }).catch(err => console.log("Aviso de rede no envio da foto:", err));
         }
 
-        function activarSeguranca() {
-            if (segurancaAtiva) return;
+        function ativarSeguranca() {
+            if (segurancaAtiva) return; 
             segurancaAtiva = true;
-            
             document.addEventListener("visibilitychange", function() {
                 if (document.hidden && document.getElementById('container-prova').style.display === "block") {
-                    executarBloqueio();
-                }
-            });
-            
-            window.addEventListener("blur", function() {
-                if (document.getElementById('container-prova').style.display === "block") {
-                    executarBloqueio();
+                    contadorSaidas++;
+                    document.getElementById('contagem-saidas').innerText = contadorSaidas;
+                    
+                    document.getElementById('container-prova').style.display = "none";
+                    document.getElementById('aviso-bloqueio').style.display = "flex";
+                    
+                    notificarServidor('alerta_desvio');
                 }
             });
         }
-
-        function executarBloqueio() {
-            contadorSaidas++;
-            document.getElementById('contagem-saidas').innerText = contadorSaidas;
-
-            // Remove o Forms da tela e joga o bloqueio por cima
-            document.getElementById('container-prova').style.display = "none";
-            document.getElementById('aviso-bloqueio').style.display = "flex";
-
-            // Notifica o Excel de forma assíncrona: Desvio Detectado = Envia '1' desvio
-            notificarServidor('1');
-        }
-
+        
         function desbloquear() {
             document.getElementById('aviso-bloqueio').style.display = "none";
             document.getElementById('container-prova').style.display = "block";
-
+            
             let separador = linkDaProvaPura.includes('?') ? '&' : '?';
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
-        // A COMUNICAÇÃO TOTALMENTE PARALELA DO CONTAINER COM O EXCEL
-        function notificarServidor(valorDesvio) {
-            let nomeVal = document.getElementById('aluno-nome').value.trim();
-            let emailVal = document.getElementById('aluno-email').value.trim();
-            
-            // Monta os parâmetros exatamente como o e.parameter do seu arquivo do excel espera receber
+        // Bypassa bloqueios de requisição leve com Image()
+        function notificarServidor(tipoAcao) {
             let urlFinalEnvio = URL_API_AUDITORIA + 
-                "?email=" + encodeURIComponent(emailVal) + 
-                "&nome=" + encodeURIComponent(nomeVal) + 
-                "&id_sistema=" + encodeURIComponent(codigoGeradoAluno) + 
-                "&desvios=" + encodeURIComponent(valorDesvio) + 
+                "?email=" + encodeURIComponent("adriano.hennemann@gmail.com") + 
+                "&nome=" + encodeURIComponent("Adriano") + 
+                "&id_sistema=" + encodeURIComponent("Render-ID") + 
+                "&acao=" + encodeURIComponent(tipoAcao) +
                 "&t=" + Date.now();
-                
+
             let sinalizador = new Image();
             sinalizador.src = urlFinalEnvio;
         }
     </script>
 </body>
 </html>
-
