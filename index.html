@@ -118,6 +118,35 @@ function gerarLinkAcesso() {
         
         // Gera um código aleatório de 6 dígitos para o aluno
         const numAleatorio = Math.floor(100000 + Math.random() * 900000);
-        const novoCodigoAluno
+        const novoCodigoAluno = numAleatorio; // Correção da sintaxe aqui
+        
+        // Monta a URL final que o aluno vai acessar
+        const urlFinal = siteUrl + "?prova=" + encodeURIComponent(urlForms) + "&idAluno=" + novoCodigoAluno;
+        
+        // Exibe o resultado na tela
+        document.getElementById('link-final-texto').innerText = urlFinal;
+        document.getElementById('resultado-link').style.display = "block";
+    } else {
+        alert("Por favor, insira um link válido do Google Forms (contendo http/https).");
+    }
+}
+
+function copiarLink() {
+    const textoUrl = document.getElementById('link-final-texto').innerText;
+    navigator.clipboard.writeText(textoUrl).then(() => {
+        alert("Link copiado com sucesso!");
+    }).catch(err => {
+        console.error('Erro ao copiar link: ', err);
+    });
+}
+
+// Funções dummy apenas para não dar erro caso falte o resto do seu script original
+function ligarCamera() { console.log("Câmera ativada"); }
+function tirarFoto() {    console.log("Foto tirada"); }
+function validarEIniciar() { console.log("Prova Iniciada"); }
+function desbloquear() { console.log("Desbloqueado"); }
+</script>
+</body>
+</html>
 
 
