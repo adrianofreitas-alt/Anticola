@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Avaliação Segura</title>
+    <title>Portal Anticola - Gerador</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -31,7 +31,6 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            overflow-x: hidden;
             padding: 20px;
         }
 
@@ -46,45 +45,60 @@
             padding: 30px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             text-align: center;
-            margin-bottom: 20px;
         }
 
-        h1, h2 {
+        h2 {
             font-size: 22px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         p {
             color: var(--text-muted);
             font-size: 14px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .form-group {
             text-align: left;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: var(--text-muted);
+            margin-bottom: 25px;
         }
 
         input[type="text"], input[type="email"] {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
             border: 2px solid #334155;
             background-color: #0f172a;
             color: var(--text);
             font-size: 16px;
             outline: none;
+            text-align: center;
         }
 
         input:focus {
             border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover { 
+            background-color: var(--primary-hover); 
         }
 
         .url-box {
@@ -117,20 +131,6 @@
             object-fit: cover;
         }
 
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        button:hover { background-color: var(--primary-hover); }
-
         #frame-prova {
             display: none;
             position: fixed;
@@ -148,31 +148,26 @@
 
     <div class="container">
         <div class="card" id="secao-professor">
-            <h2>👨‍🏫 Painel do Professor</h2>
-            <p>Cole o link original do Google Forms abaixo para gerar o link monitorado do aluno.</p>
+            <h2>👨‍🏫 Gerador de Link</h2>
+            <p>Cole o link que termina em =0</p>
             <div class="form-group">
-                <label>Link do Google Forms</label>
-                <input type="text" id="input-forms" placeholder="https://docs.google.com/forms/.../viewform">
+                <input type="text" id="input-forms" placeholder="https://docs.google.com/forms/d/e/...">
             </div>
             <button onclick="gerarLinkEstudante()">Gerar Link do Aluno</button>
             
             <div id="resultado-gerador" style="display:none;">
-                <p style="margin-top:15px; margin-bottom:5px;">Clique no link verde abaixo para copiar:</p>
+                <p style="margin-top:15px; margin-bottom:5px; color: var(--success);">Link gerado! Clique na caixa para copiar:</p>
                 <div class="url-box" id="link-final-copia" onclick="copiarTextoLink()"></div>
             </div>
         </div>
 
         <div class="card" id="secao-aluno" style="display:none;">
-            <h1>📸 Verificação de Identidade</h1>
-            <p>Preencha os seus dados e tire a foto de entrada para iniciar o teste.</p>
+            <h2>📸 Verificação de Identidade</h2>
+            <p>Preencha os seus dados e posicione-se para a foto de entrada.</p>
             
-            <div class="form-group">
-                <label>Nome Completo</label>
-                <input type="text" id="nome-aluno" placeholder="Nome do estudante">
-            </div>
-            <div class="form-group">
-                <label>E-mail</label>
-                <input type="email" id="email-aluno" placeholder="exemplo@email.com">
+            <div style="text-align: left; margin-bottom: 15px;">
+                <input type="text" id="nome-aluno" placeholder="Nome Completo" style="margin-bottom: 15px;">
+                <input type="email" id="email-aluno" placeholder="E-mail Institucional">
             </div>
 
             <div class="camera-box">
@@ -189,20 +184,18 @@
 
     <script>
         // =========================================================
-        // CONFIGURAÇÃO OBRIGATÓRIA: INSIRA SUA URL DO GOOGLE SCRIPT
+        // CONFIGURAÇÃO: COLOQUE SEU LINK DO GOOGLE SCRIPTS AQUI
         // =========================================================
         const URL_API_AUDITORIA = 'COLE_AQUI_A_SUA_URL_DO_GOOGLE_SCRIPT_QUE_TERMINA_EM_EXEC';
 
         let streamMedia = null;
         let URL_PROVA_FINAL = '';
 
-        // Detecta o modo de exibição (Professor ou Aluno) assim que a página abre
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const provaUrl = params.get('prova');
 
             if (provaUrl) {
-                // Modo Aluno ativo
                 URL_PROVA_FINAL = decodeURIComponent(provaUrl);
                 document.getElementById('secao-professor').style.display = 'none';
                 document.getElementById('secao-aluno').style.display = 'block';
@@ -210,11 +203,10 @@
             }
         });
 
-        // FUNÇÃO DO PROFESSOR: Cria o link personalizado
         function gerarLinkEstudante() {
             const urlForms = document.getElementById('input-forms').value.trim();
             if (!urlForms.includes('http')) {
-                alert('Por favor, cole um link válido do Google Forms.');
+                alert('Por favor, insira o link do Google Forms.');
                 return;
             }
             const baseWeb = window.location.href.split('?')[0];
@@ -227,18 +219,17 @@
         function copiarTextoLink() {
             const texto = document.getElementById('link-final-copia').innerText;
             navigator.clipboard.writeText(texto).then(() => {
-                alert('Link copiado com sucesso para a área de transferência!');
+                alert('Link copiado para a área de transferência!');
             });
         }
 
-        // FUNÇÕES DO ALUNO: Câmera e Envio
         async function iniciarWebcam() {
             try {
                 streamMedia = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
                 document.getElementById('video').srcObject = streamMedia;
             } catch (err) {
                 document.getElementById('status-aluno').style.color = 'var(--error)';
-                document.getElementById('status-aluno').innerText = 'Acesso à câmera negado. Você precisa permitir para fazer a prova.';
+                document.getElementById('status-aluno').innerText = 'Câmera não encontrada ou permissão negada.';
                 document.getElementById('btn-entrar').disabled = true;
             }
         }
@@ -250,15 +241,14 @@
 
             if (!nome || !email) {
                 status.style.color = 'var(--error)';
-                status.innerText = 'Preencha o Nome e o E-mail antes de continuar.';
+                status.innerText = 'Preencha todos os campos.';
                 return;
             }
 
             document.getElementById('btn-entrar').disabled = true;
             status.style.color = 'var(--text)';
-            status.innerText = 'Enviando foto de auditoria...';
+            status.innerText = 'Registrando foto de auditoria...';
 
-            // Captura a foto
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
@@ -267,7 +257,6 @@
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const fotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
 
-            // Envia os dados para a planilha
             try {
                 await fetch(URL_API_AUDITORIA, {
                     method: 'POST',
@@ -276,7 +265,7 @@
                     body: JSON.stringify({ nome: nome, email: email, foto: fotoBase64, acao: 'registro_inicial' })
                 });
 
-                status.innerText = 'Entrada registrada! Abrindo prova...';
+                status.innerText = 'Tudo certo! Abrindo avaliação...';
                 setTimeout(() => {
                     if (streamMedia) streamMedia.getTracks().forEach(t => t.stop());
                     document.getElementById('secao-aluno').style.display = 'none';
@@ -285,16 +274,15 @@
                     frame.src = URL_PROVA_FINAL;
                     frame.style.display = 'block';
 
-                    // Monitoramento contra colas ativo
                     window.addEventListener('blur', () => {
                         navigator.sendBeacon(`${URL_API_AUDITORIA}?email=${encodeURIComponent(email)}&acao=alerta_desvio`);
-                        alert("AVISO: Você saiu da aba da prova. Essa ação foi notificada ao professor.");
+                        alert("AVISO: Você mudou de aba ou janela. Esta ação foi reportada ao relatório do professor.");
                     });
                 }, 1000);
 
             } catch (e) {
                 status.style.color = 'var(--error)';
-                status.innerText = 'Erro de comunicação. Tente novamente.';
+                status.innerText = 'Falha ao conectar ao servidor. Tente novamente.';
                 document.getElementById('btn-entrar').disabled = false;
             }
         }
