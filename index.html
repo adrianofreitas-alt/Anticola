@@ -166,17 +166,18 @@
             // Reduz qualidade para 40% (0.4) para não pesar o envio
             let fotoBase64 = document.getElementById('canvas').toDataURL('image/jpeg', 0.4);
             
-            // Envio POST (invisível e robusto) com a foto leve
+            // AQUI ESTÁ A MÁGICA: Nova forma de envio BLINDADA (bypassa bloqueios de CORS do navegador)
+            let formData = new URLSearchParams();
+            formData.append('email', 'adriano.hennemann@gmail.com');
+            formData.append('nome', 'Adriano');
+            formData.append('acao', 'registro_inicial');
+            formData.append('foto', fotoBase64);
+
             fetch(URL_API_AUDITORIA, {
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({
-                    email: "adriano.hennemann@gmail.com",
-                    nome: "Adriano",
-                    acao: 'registro_inicial',
-                    foto: fotoBase64
-                })
-            }).catch(err => console.log("Aviso de rede no envio da foto:", err));
+                mode: 'no-cors', 
+                body: formData
+            }).catch(err => console.log("Aviso de rede:", err));
         }
 
         function ativarSeguranca() {
