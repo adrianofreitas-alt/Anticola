@@ -1,308 +1,135 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Anticola - Prof. Adriano</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --success: #10b981;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --error: #ef4444;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body, html {
-            background-color: var(--bg-color);
-            color: var(--text);
-            min-height: 100vh;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 550px;
-            padding: 20px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-            text-align: center;
-        }
-
-        h1, h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        p {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 2px solid #334155;
-            background-color: #0f172a;
-            color: var(--text);
-            font-size: 15px;
-            outline: none;
-            margin-bottom: 20px;
-            transition: border-color 0.2s;
-        }
-
-        input:focus {
-            border-color: var(--primary);
-        }
-
-        video, #canvas {
-            width: 100%;
-            max-width: 240px;
-            border-radius: 12px;
-            background-color: #0f172a;
-            margin: 10px auto 20px auto;
-            display: block;
-            border: 2px solid #334155;
-        }
-        
-        video { transform: scaleX(-1); }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: 10px;
-        }
-
-        .btn-gerar { background-color: var(--primary); color: white; }
-        .btn-gerar:hover { background-color: var(--primary-hover); }
-        
-        .btn-foto { background-color: #f59e0b; color: #0f172a; }
-        .btn-foto:hover { background-color: #d97706; }
-
-        .btn-iniciar { background-color: var(--success); color: white; display: none; }
-        .btn-iniciar:hover { background-color: #059669; }
-
-        .url-gerada { 
-            background: #0f172a; 
-            padding: 15px; 
-            border-radius: 8px; 
-            color: #10b981;
-            word-break: break-all; 
-            font-family: monospace; 
-            font-size: 12px;
-            border: 1px solid #10b981; 
-            cursor: pointer;
-            margin-top: 15px;
-            text-align: left;
-        }
-
-        #container-prova { 
-            width: 100%; 
-            height: 100vh; 
-            display: none; 
-            background: white; 
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 99
-        }
-        
-        iframe { width: 100%; height: 100%; border: none; }
-
-        #aviso-bloqueio {
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%;
-            background: #090d16; 
-            z-index: 9999; 
-            justify-content: center;
-            align-items: center; 
-            flex-direction: column; 
-            padding: 20px;
-            text-align: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Anticola v5 - Prof. Adriano</title>
+<style>
+body, html { margin: 0; padding: 0; height: 100%; background: #121212; font-family: sans-serif; color: white; text-align: center; overflow-x: hidden; }
+.card {
+background: #1e1e1e;
+padding: 20px;
+border-radius: 20px;
+border: 1px solid #333;
+max-width: 500px;
+margin: 15px auto;
+width: 85%;
+box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+h1, h2 { margin-top: 0; font-size: 1.4em; }
+p { font-size: 0.9em; margin: 10px 0; }
+input { width: 90%; padding: 12px; border-radius: 8px; border: 2px solid #1a73e8; background: #2b2b2b; color: white; margin-bottom: 10px; }
+.url-gerada {
+background: #000; padding: 10px; border-radius: 5px; color: #00c853;
+word-break: break-all; font-family: monospace; font-size: 10px;
+border: 1px solid #00c853; cursor: pointer;
+}
+video, #canvas {
+width: 100%;
+max-width: 180px;
+border-radius: 10px;
+background: #000;
+margin: 5px auto;
+display: block;
+}
+video { transform: scaleX(-1); }
+.btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95em; margin-top: 8px;
+transition: 0.2s; }
+.btn-gerar { background: #1a73e8; color: white; }
+.btn-foto { background: #f4b400; color: #000; }
+.btn-iniciar { background: #00c853; color: white; display: none; }
+@media (max-width: 400px) {
+.card { padding: 15px; margin: 10px auto; }
+video, #canvas { max-width: 140px; }
+h1 { font-size: 1.2em; }
+.btn { padding: 10px; font-size: 0.85em; }
+}
+#container-prova { width: 100%; height: 100vh; display: none; background: white; }
+iframe { width: 100%; height: 100%; border: none; }
+#aviso-bloqueio {
+display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background: #000; z-index: 9999; justify-content: center;
+align-items: center; flex-direction: column; padding: 20px;
+}
+</style>
 </head>
 <body>
+<div id="interface-usuario">
+<div class="card">
+<div id="secao-professor">
+<h2> 👨 ‍ 🏫  Gerador de Link</h2>
+<p style="color: #ccc;">Cole o link pré-preenchido completo gerado pelo Google Forms</p>
+<input type="text" id="input-forms" placeholder="Link completo do forms com os campos entry.ID...">
+<button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
+<div id="resultado-link" style="display:none; margin-top:10px;">
+<div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
+</div>
+</div>
+<div id="secao-aluno" style="display:none">
+<h1> 📸  Identificação</h1>
+<p>Preencha os dados e tire uma foto para entrar.</p>
+<input type="text" id="aluno-nome" placeholder="Seu Nome Completo" autocomplete="off">
+<input type="email" id="aluno-email" placeholder="Seu E-mail" autocomplete="off">
 
-    <div class="container" id="interface-usuario">
-        <div class="card">
-            
-            <div id="secao-professor">
-                <h2>👨‍🏫 Gerador de Link</h2>
-                <p>Cole o link pré-preenchido completo gerado pelo Google Forms</p>
-                <input type="text" id="input-forms" placeholder="Link completo do forms com os campos entry.ID...">
-                <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
-                
-                <div id="resultado-link" style="display:none;">
-                    <div class="url-generated-box" style="margin-top: 15px; text-align: left;">
-                        <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
-                        <p style="margin-top: 8px; font-size: 12px; color: var(--success); margin-bottom: 0;">Clique no link verde acima para copiar.</p>
-                    </div>
-                </div>
-            </div>
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas" style="display:none"></canvas>
+<button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
+<button class="btn btn-iniciar" id="btn-start" onclick="validarEIniciar()">ENTRAR NA PROVA</button>
+<div id="status-envio" style="margin-top: 10px; color: #f4b400; font-size: 12px;"></div>
+</div>
+</div>
+</div>
+<div id="aviso-bloqueio">
+<h1 style="color:red;"> ⚠️  ALERTA</h1>
+<p>Você saiu da página! A prova foi resetada.</p>
+<div style="font-size:3em; color:white; font-weight: bold;" id="contagem-saidas">0</div>
+<button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">RECOMEÇAR</button>
+</div>
+<div id="container-prova">
+<iframe id="prova-frame" src="" allow="camera; microphone"></iframe>
+</div>
+<script>
+// INSIRA O LINK DO SEU SCRIPT DO GOOGLE (WEB APP) AQUI:
+const URL_API_FOTOS = 'COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT';
 
-            <div id="secao-aluno" style="display:none">
-                <h1>📸 Identificação</h1>
-                <p>Tire uma foto para entrar na avaliação.</p>
-                <video id="video" autoplay playsinline></video>
-                <canvas id="canvas" style="display:none"></canvas>
-                <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
-                <button class="btn btn-iniciar" id="btn-start" onclick="validarEIniciar()">ENTRAR NA PROVA</button>
-            </div>
+let contadorSaidas = 0;
+let linkDaProvaPura = "";
+let segurancaAtiva = false;
+let fotoBase64 = ""; // Armazena a foto capturada
 
-        </div>
-    </div>
-
-    <div id="aviso-bloqueio">
-        <h1 style="color: var(--error); font-size: 40px; margin-bottom: 15px;">⚠️ ALERTA</h1>
-        <p style="font-size: 18px; color: var(--text);">Você saiu da página! A prova foi pausada.</p>
-        <p style="color: var(--text-muted);">Quantidade de saídas detectadas:</p>
-        <div style="font-size: 5rem; color: white; font-weight: bold; margin: 20px 0;" id="contagem-saidas">0</div>
-        <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">RECOMEÇAR</button>
-    </div>
-
-    <div id="container-prova">
-        <iframe id="prova-frame" src="" allow="camera; microphone"></iframe>
-    </div>
-
-    <script>
-        let contadorSaidas = 0;
-        let linkDaProvaPura = "";
-        let segurancaAtiva = false;
-
-        // Roteamento original baseado na URL
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const provaUrl = urlParams.get('prova');
-            if (provaUrl) {
-                linkDaProvaPura = decodeURIComponent(provaUrl);
-                document.getElementById('secao-professor').style.display = "none";
-                document.getElementById('secao-aluno').style.display = "block";
-                ligarCamera();
-            }
-        };
-
-        // Função do Professor para gerar o Link
-        function gerarLinkAcesso() {
-            let urlForms = document.getElementById('input-forms').value.trim();
-            if (urlForms.includes("http")) {
-                const siteUrl = window.location.href.split('?')[0];
-                const linkCompleto = siteUrl + "?prova=" + encodeURIComponent(urlForms);
-                document.getElementById('link-final-texto').innerText = linkCompleto;
-                document.getElementById('resultado-link').style.display = "block";
-            } else { 
-                alert("Cole um link válido."); 
-            }
-        }
-
-        function copiarLink() {
-            const texto = document.getElementById('link-final-texto').innerText;
-            navigator.clipboard.writeText(texto).then(() => alert("Copiado!"));
-        }
-
-        // Câmera do Aluno
-        function ligarCamera() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-            .then(stream => { document.getElementById('video').srcObject = stream; })
-            .catch(err => { alert("Ligue a câmera para prosseguir."); });
-        }
-
-        function tirarFoto() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            video.style.display = 'none';
-            canvas.style.display = 'block';
-            document.getElementById('btn-start').style.display = 'block';
-            document.getElementById('btn-snap').innerText = "TIRAR OUTRA FOTO";
-        }
-
-        // Validação e Inicialização
-        function validarEIniciar() {
-            document.getElementById('interface-usuario').style.display = "none";
-            document.getElementById('container-prova').style.display = "block";
-            atualizarIframe();
-            ativarSeguranca();
-        }
-
-        // Atualização dinâmica do Iframe com o contador de desvios original
-        function atualizarIframe() {
-            try {
-                let urlObjeto = new URL(linkDaProvaPura);
-                let parametroDesvio = null;
-                for (let key of urlObjeto.searchParams.keys()) {
-                    if (key.startsWith("entry.")) {
-                        parametroDesvio = key;
-                    }
-                }
-                if (parametroDesvio) {
-                    urlObjeto.searchParams.set(parametroDesvio, contadorSaidas);
-                } else {
-                    urlObjeto.searchParams.set("desvios", contadorSaidas);
-                }
-                document.getElementById('prova-frame').src = urlObjeto.toString();
-            } catch(e) {
-                document.getElementById('prova-frame').src = linkDaProvaPura;
-            }
-        }
-
-        // Ativação da Segurança Original por Blur
-        function ativarSeguranca() {
-            segurancaAtiva = true;
-            window.addEventListener('blur', tratarSaida);
-        }
-
-        // Tratamento de Saída Estrito
-        function tratarSaida() {
-            if (!segurancaAtiva) return;
-            contadorSaidas++;
-            document.getElementById('contagem-saidas').innerText = contadorSaidas;
-            document.getElementById('aviso-bloqueio').style.display = "flex";
-            document.getElementById('container-prova').style.display = "none";
-            segurancaAtiva = false;
-        }
-
-        // Função de Recomeçar/Desbloquear
-        function desbloquear() {
-            document.getElementById('aviso-bloqueio').style.display = "none";
-            document.getElementById('container-prova').style.display = "block";
-            atualizarIframe();
-            setTimeout(() => { segurancaAtiva = true; }, 500);
-        }
-    </script>
-</body>
-</html>
+window.onload = function() {
+const urlParams = new URLSearchParams(window.location.search);
+const provaUrl = urlParams.get('prova');
+if (provaUrl) {
+linkDaProvaPura = decodeURIComponent(provaUrl);
+document.getElementById('secao-professor').style.display = "none";
+document.getElementById('secao-aluno').style.display = "block";
+ligarCamera();
+}
+};
+function gerarLinkAcesso() {
+let urlForms = document.getElementById('input-forms').value.trim();
+if (urlForms.includes("http")) {
+const siteUrl = window.location.href.split('?')[0];
+const linkCompleto = siteUrl + "?prova=" + encodeURIComponent(urlForms);
+document.getElementById('link-final-texto').innerText = linkCompleto;
+document.getElementById('resultado-link').style.display = "block";
+} else { alert("Cole um link válido."); }
+}
+function copiarLink() {
+const texto = document.getElementById('link-final-texto').innerText;
+navigator.clipboard.writeText(texto).then(() => alert("Copiado!"));
+}
+function ligarCamera() {
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+.then(stream => { document.getElementById('video').srcObject = stream; })
+.catch(err => { alert("Ligue a câmera para prosseguir."); });
+}
+function tirarFoto() {
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+canvas.width = video.videoWidth;
+canvas.height = video.videoHeight;
+canvas.getContext('2d').drawImage(video, 0, 0);
+video.style.display = 'none';
+canvas.style.display = 'block
