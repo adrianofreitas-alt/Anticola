@@ -1,303 +1,61 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Avaliação Segura</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --success: #10b981;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --error: #ef4444;
-        }
+function doGet(e) { return processRequest(e); }
+function doPost(e) { return processRequest(e); }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+function processRequest(e) {
+  try {
+    var planilha = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Página1');
+    var params = {};
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-            padding: 20px;
-        }
+    // Deteta se está a receber a foto (POST) ou apenas um alerta de desvio leve (GET)
+    if (e.postData && e.postData.contents) {
+      try { params = JSON.parse(e.postData.contents); } catch(x) { params = e.parameter; }
+    } else {
+      params = e.parameter;
+    }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-        }
+    var email = params.email || 'adriano.hennemann@gmail.com';
+    var nome = params.nome || 'Adriano';
+    var acao = params.acao || 'registro_inicial';
+    var foto = params.foto || '';
+    var dataHora = new Date();
 
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            margin-bottom: 20px;
-        }
+    var dados = planilha.getDataRange().getValues();
+    var linhaAluno = -1;
 
-        h1, h2 {
-            font-size: 22px;
-            margin-bottom: 10px;
-        }
+    // Procura o aluno na planilha
+    for (var i = 1; i < dados.length; i++) {
+      if (dados[i][2] && dados[i][2].toString().toLowerCase() === email.toLowerCase()) {
+        linhaAluno = i + 1; break;
+      }
+    }
 
-        p {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
+    var imagemFormula = 'SEM FOTO';
+    
+    // Se a foto chegou, guarda no Drive e gera a fórmula para a Coluna A
+    if (foto.length > 100) {
+      try {
+        var blob = Utilities.newBlob(Utilities.base64Decode(foto.split(',')[1]), 'image/jpeg', nome + '.jpg');
+        var arq = DriveApp.createFile(blob);
+        arq.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        imagemFormula = '=IMAGE("https://drive.google.com/uc?id=' + arq.getId() + '")';
+      } catch(err) { imagemFormula = 'ERRO DRIVE'; }
+    }
 
-        .form-group {
-            text-align: left;
-            margin-bottom: 20px;
-        }
+    if (linhaAluno === -1) {
+      planilha.appendRow([imagemFormula, dataHora, email, nome, 'Render-ID', 0]);
+    } else {
+      if (acao === 'alerta_desvio') {
+        var cel = planilha.getRange(linhaAluno, 6);
+        cel.setValue((parseInt(cel.getValue()) || 0) + 1);
+      } else if (acao === 'registro_inicial' && imagemFormula !== 'SEM FOTO') {
+        planilha.getRange(linhaAluno, 1).setValue(imagemFormula);
+      }
+      planilha.getRange(linhaAluno, 2).setValue(dataHora);
+    }
+    
+    return ContentService.createTextOutput("ok");
+  } catch(e) {
+    return ContentService.createTextOutput("erro");
+  }
+}
 
-        label {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-        }
-
-        input[type="text"], input[type="email"] {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 2px solid #334155;
-            background-color: #0f172a;
-            color: var(--text);
-            font-size: 16px;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: var(--primary);
-        }
-
-        .url-box {
-            background: #0f172a;
-            padding: 15px;
-            border-radius: 8px;
-            color: var(--success);
-            word-break: break-all;
-            font-family: monospace;
-            font-size: 13px;
-            margin-top: 15px;
-            border: 1px dashed var(--success);
-            cursor: pointer;
-        }
-
-        .camera-box {
-            width: 100%;
-            max-width: 400px;
-            height: 300px;
-            background-color: #0f172a;
-            border-radius: 12px;
-            margin: 0 auto 25px auto;
-            overflow: hidden;
-            border: 2px solid #334155;
-        }
-
-        video, canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        button:hover { background-color: var(--primary-hover); }
-
-        #frame-prova {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            border: none;
-            z-index: 9999;
-            background: white;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <div class="card" id="secao-professor">
-            <h2>👨‍🏫 Painel do Professor</h2>
-            <p>Cole o link original do Google Forms abaixo para gerar o link monitorado do aluno.</p>
-            <div class="form-group">
-                <label>Link do Google Forms</label>
-                <input type="text" id="input-forms" placeholder="https://docs.google.com/forms/.../viewform">
-            </div>
-            <button onclick="gerarLinkEstudante()">Gerar Link do Aluno</button>
-            
-            <div id="resultado-gerador" style="display:none;">
-                <p style="margin-top:15px; margin-bottom:5px;">Clique no link verde abaixo para copiar:</p>
-                <div class="url-box" id="link-final-copia" onclick="copiarTextoLink()"></div>
-            </div>
-        </div>
-
-        <div class="card" id="secao-aluno" style="display:none;">
-            <h1>📸 Verificação de Identidade</h1>
-            <p>Preencha os seus dados e tire a foto de entrada para iniciar o teste.</p>
-            
-            <div class="form-group">
-                <label>Nome Completo</label>
-                <input type="text" id="nome-aluno" placeholder="Nome do estudante">
-            </div>
-            <div class="form-group">
-                <label>E-mail</label>
-                <input type="email" id="email-aluno" placeholder="exemplo@email.com">
-            </div>
-
-            <div class="camera-box">
-                <video id="video" autoplay playsinline muted></video>
-                <canvas id="canvas" style="display:none;"></canvas>
-            </div>
-
-            <button id="btn-entrar" onclick="processarEntradaAluno()">Tirar Foto e Iniciar Prova</button>
-            <div id="status-aluno" style="margin-top:15px; font-size:14px;"></div>
-        </div>
-    </div>
-
-    <iframe id="frame-prova" src=""></iframe>
-
-    <script>
-        // =========================================================
-        // CONFIGURAÇÃO OBRIGATÓRIA: INSIRA SUA URL DO GOOGLE SCRIPT
-        // =========================================================
-        const URL_API_AUDITORIA = 'COLE_AQUI_A_SUA_URL_DO_GOOGLE_SCRIPT_QUE_TERMINA_EM_EXEC';
-
-        let streamMedia = null;
-        let URL_PROVA_FINAL = '';
-
-        // Detecta o modo de exibição (Professor ou Aluno) assim que a página abre
-        window.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const provaUrl = params.get('prova');
-
-            if (provaUrl) {
-                // Modo Aluno ativo
-                URL_PROVA_FINAL = decodeURIComponent(provaUrl);
-                document.getElementById('secao-professor').style.display = 'none';
-                document.getElementById('secao-aluno').style.display = 'block';
-                iniciarWebcam();
-            }
-        });
-
-        // FUNÇÃO DO PROFESSOR: Cria o link personalizado
-        function gerarLinkEstudante() {
-            const urlForms = document.getElementById('input-forms').value.trim();
-            if (!urlForms.includes('http')) {
-                alert('Por favor, cole um link válido do Google Forms.');
-                return;
-            }
-            const baseWeb = window.location.href.split('?')[0];
-            const linkGerado = `${baseWeb}?prova=${encodeURIComponent(urlForms)}`;
-            
-            document.getElementById('link-final-copia').innerText = linkGerado;
-            document.getElementById('resultado-gerador').style.display = 'block';
-        }
-
-        function copiarTextoLink() {
-            const texto = document.getElementById('link-final-copia').innerText;
-            navigator.clipboard.writeText(texto).then(() => {
-                alert('Link copiado com sucesso para a área de transferência!');
-            });
-        }
-
-        // FUNÇÕES DO ALUNO: Câmera e Envio
-        async function iniciarWebcam() {
-            try {
-                streamMedia = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
-                document.getElementById('video').srcObject = streamMedia;
-            } catch (err) {
-                document.getElementById('status-aluno').style.color = 'var(--error)';
-                document.getElementById('status-aluno').innerText = 'Acesso à câmera negado. Você precisa permitir para fazer a prova.';
-                document.getElementById('btn-entrar').disabled = true;
-            }
-        }
-
-        async function processarEntradaAluno() {
-            const nome = document.getElementById('nome-aluno').value.trim();
-            const email = document.getElementById('email-aluno').value.trim();
-            const status = document.getElementById('status-aluno');
-
-            if (!nome || !email) {
-                status.style.color = 'var(--error)';
-                status.innerText = 'Preencha o Nome e o E-mail antes de continuar.';
-                return;
-            }
-
-            document.getElementById('btn-entrar').disabled = true;
-            status.style.color = 'var(--text)';
-            status.innerText = 'Enviando foto de auditoria...';
-
-            // Captura a foto
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 640;
-            canvas.height = 480;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const fotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
-
-            // Envia os dados para a planilha
-            try {
-                await fetch(URL_API_AUDITORIA, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome: nome, email: email, foto: fotoBase64, acao: 'registro_inicial' })
-                });
-
-                status.innerText = 'Entrada registrada! Abrindo prova...';
-                setTimeout(() => {
-                    if (streamMedia) streamMedia.getTracks().forEach(t => t.stop());
-                    document.getElementById('secao-aluno').style.display = 'none';
-                    
-                    const frame = document.getElementById('frame-prova');
-                    frame.src = URL_PROVA_FINAL;
-                    frame.style.display = 'block';
-
-                    // Monitoramento contra colas ativo
-                    window.addEventListener('blur', () => {
-                        navigator.sendBeacon(`${URL_API_AUDITORIA}?email=${encodeURIComponent(email)}&acao=alerta_desvio`);
-                        alert("AVISO: Você saiu da aba da prova. Essa ação foi notificada ao professor.");
-                    });
-                }, 1000);
-
-            } catch (e) {
-                status.style.color = 'var(--error)';
-                status.innerText = 'Erro de comunicação. Tente novamente.';
-                document.getElementById('btn-entrar').disabled = false;
-            }
-        }
-    </script>
-</body>
-</html>
