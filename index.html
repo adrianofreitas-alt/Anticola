@@ -91,7 +91,6 @@
     </div>
 
     <script>
-        // Substitua esta URL caso mude a implantação do Apps Script
         const URL_API_AUDITORIA = 'https://script.google.com/macros/s/AKfycbxmcTKdPT56io4KxOOojD_OmtxqwUwN8IFuPj6_Nat3LpMMBEHR_6vVw7RVZbNTS6hQ8w/exec';
 
         let contadorSaidas = 0;
@@ -167,7 +166,7 @@
             // Reduz qualidade para 40% (0.4) para não pesar o envio
             let fotoBase64 = document.getElementById('canvas').toDataURL('image/jpeg', 0.4);
             
-            // Envio POST (invisível e robusto)
+            // Envio POST (invisível e robusto) com a foto leve
             fetch(URL_API_AUDITORIA, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -204,7 +203,7 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
-        // Bypassa bloqueios de requisição leve com Image()
+        // Bypassa bloqueios de requisição leve com Image() para os desvios
         function notificarServidor(tipoAcao) {
             let urlFinalEnvio = URL_API_AUDITORIA + 
                 "?email=" + encodeURIComponent("adriano.hennemann@gmail.com") + 
