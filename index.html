@@ -58,7 +58,8 @@
     </div>
 
     <script>
-        const URL_API_LOCAL = 'http://localhost:3000/api/entrar';
+        // Comunicação direta com a API do seu Google Apps Script na nuvem
+        const URL_API_AUDITORIA = 'https://script.google.com/macros/s/AKfycbxmcTKdPT56io4KxOOojD_OmtxqwUwN8IFuPj6_Nat3LpMMBEHR_6vVw7RVZbNTS6hQ8w/exec';
 
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
@@ -131,25 +132,25 @@
             
             let fotoBase64 = document.getElementById('canvas').toDataURL('image/jpeg', 0.4);
             
-            fetch(URL_API_LOCAL, {
+            // Registro inicial: Envia os dados estruturados em modo text/plain para ignorar restrição de CORS
+            fetch(URL_API_AUDITORIA, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
-                    idAluno: "Adriano",
                     email: "adriano.hennemann@gmail.com",
+                    nome: "Adriano",
                     acao: 'registro_inicial',
-                    fotoBase64: fotoBase64
+                    foto: fotoBase64
                 })
-            })
-            .then(res => res.json())
-            .then(dados => console.log("Resposta do Servidor Local:", dados))
-            .catch(err => console.error("Erro ao enviar para o servidor local:", err));
+            }).catch(err => console.log("Erro de rede no registro inicial:", err));
         }
 
         function ativarSeguranca() {
             if (segurancaAtiva) return; 
             segurancaAtiva = true;
             document.addEventListener("visibilitychange", function() {
+                // Se o aluno mudar de aba/janela e a prova estiver em execução
                 if (document.hidden && document.getElementById('container-prova').style.display === "block") {
                     contadorSaidas++;
                     document.getElementById('contagem-saidas').innerText = contadorSaidas;
@@ -157,6 +158,7 @@
                     document.getElementById('container-prova').style.display = "none";
                     document.getElementById('aviso-bloqueio').style.display = "flex";
                     
+                    // Dispara a contagem do desvio de forma assíncrona e direta para o Google Sheets
                     notificarServidor('alerta_desvio');
                 }
             });
@@ -170,17 +172,17 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
+        // Bypassa qualquer barreira de CORS do GitHub Pages usando uma requisição do tipo Image URL para computar a saída
         function notificarServidor(tipoAcao) {
-            fetch(URL_API_LOCAL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    idAluno: "Adriano",
-                    email: "adriano.hennemann@gmail.com",
-                    acao: tipoAcao,
-                    fotoBase64: "" 
-                })
-            }).catch(err => console.log("Erro ao enviar desvio:", err));
+            let urlFinalEnvio = URL_API_AUDITORIA + 
+                "?email=" + encodeURIComponent("adriano.hennemann@gmail.com") + 
+                "&nome=" + encodeURIComponent("Adriano") + 
+                "&acao=" + encodeURIComponent(tipoAcao) +
+                "&contador=" + contadorSaidas +
+                "&t=" + Date.now();
+
+            let sinalizador = new Image();
+            sinalizador.src = urlFinalEnvio;
         }
     </script>
 </body>
