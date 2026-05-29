@@ -5,39 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Anticola v5 - Prof. Adriano</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #121212; font-family: sans-serif; color: white; text-align: center; overflow-x: hidden; }
-        .card { background: #1e1e1e; padding: 20px; border-radius: 20px; border: 1px solid #333; max-width: 500px; margin: 15px auto; width: 85%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            background: #121212; 
+            font-family: sans-serif; 
+            color: white; 
+            text-align: center; 
+            overflow-x: hidden; 
+        }
+        .card { 
+            background: #1e1e1e; 
+            padding: 20px; 
+            border-radius: 20px; 
+            border: 1px solid #333; 
+            max-width: 500px; 
+            margin: 15px auto; 
+            width: 85%; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        }
         h1, h2 { margin-top: 0; font-size: 1.4em; }
         p { font-size: 0.9em; margin: 10px 0; }
-        input { width: 90%; padding: 12px; border-radius: 8px; border: 2px solid #1a73e8; background: #2b2b2b; color: white; margin-bottom: 10px; }
-        .url-gerada { background: #000; padding: 10px; border-radius: 5px; color: #00c853; word-break: break-all; font-family: monospace; font-size: 10px; border: 1px solid #00c853; cursor: pointer; }
-        video, #canvas { width: 100%; max-width: 180px; border-radius: 10px; background: #000; margin: 5px auto; display: block; }
+        input { 
+            width: 90%; 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: 2px solid #1a73e8; 
+            background: #2b2b2b; 
+            color: white; 
+            margin-bottom: 10px; 
+            text-align: center;
+        }
+        .url-gerada { 
+            background: #000; 
+            padding: 10px; 
+            border-radius: 5px; 
+            color: #00c853; 
+            word-break: break-all; 
+            font-family: monospace; 
+            font-size: 11px; 
+            border: 1px solid #00c853; 
+            cursor: pointer; 
+            margin-top: 10px;
+        }
+        video, #canvas { 
+            width: 100%; 
+            max-width: 240px; 
+            border-radius: 10px; 
+            background: #000; 
+            margin: 10px auto; 
+            display: block; 
+        }
         video { transform: scaleX(-1); }
-        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95em; margin-top: 8px; transition: 0.2s; }
+        .btn { 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold; 
+            width: 100%; 
+            font-size: 0.95em; 
+            margin-top: 8px; 
+            transition: 0.2s; 
+        }
         .btn-gerar { background: #1a73e8; color: white; }
         .btn-foto { background: #f4b400; color: #000; }
         .btn-iniciar { background: #00c853; color: white; display: none; }
-        @media (max-width: 400px) { .card { padding: 15px; margin: 10px auto; } video, #canvas { max-width: 140px; } h1 { font-size: 1.2em; } .btn { padding: 10px; font-size: 0.85em; } }
-        #container-prova { width: 100%; height: 100vh; display: none; background: white; }
+        
+        #container-prova { 
+            width: 100%; 
+            height: 100vh; 
+            display: none; 
+            background: white; 
+        }
         iframe { width: 100%; height: 100%; border: none; }
-        #aviso-bloqueio { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        
+        #aviso-bloqueio { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: #000; 
+            z-index: 9999; 
+            justify-content: center; 
+            align-items: center; 
+            flex-direction: column; 
+            padding: 20px; 
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
+
     <div id="interface-usuario">
         <div class="card">
             <div id="secao-professor">
                 <h2>👨‍🏫 Gerador de Link</h2>
                 <p style="color: #ccc;">Cole o link que termina em <b>=0</b></p>
-                <input type="text" id="input-forms" placeholder="Link do forms...">
+                <input type="text" id="input-forms" placeholder="Link do Google Forms...">
                 <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
-                <div id="resultado-link" style="display:none; margin-top:10px;">
+                <div id="resultado-link" style="display:none;">
+                    <p style="margin-top:15px; color:#aaa;">Clique abaixo para copiar o link gerado:</p>
                     <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
                 </div>
             </div>
+
             <div id="secao-aluno" style="display:none">
-                <h1>📸 Identificação</h1>
-                <p>Tire uma foto para entrar.</p>
+                <h1>📸 Identificação Obrigatória</h1>
+                <p>Posicione seu rosto em frente à câmera e tire uma foto para liberar sua prova.</p>
                 <video id="video" autoplay playsinline></video>
                 <canvas id="canvas" style="display:none"></canvas>
                 <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
@@ -47,10 +125,11 @@
     </div>
     
     <div id="aviso-bloqueio">
-        <h1 style="color:red;">⚠️ ALERTA</h1>
-        <p>Você saiu da página! A prova foi resetada.</p>
-        <div style="font-size:3em; color:white; font-weight: bold;" id="contagem-saidas">0</div>
-        <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">RECOMEÇAR</button>
+        <h1 style="color:red; font-size: 2.5em; margin-bottom: 5px;">⚠️ ALERTA DE INFRAÇÃO</h1>
+        <p style="font-size: 1.2em; max-width: 400px;">Você tentou sair da página da prova! O sistema registrou seu desvio.</p>
+        <div style="font-size:4em; color:#ff3333; font-weight: bold; margin: 15px 0;" id="contagem-saidas">0</div>
+        <p style="color: #aaa; margin-bottom: 20px;">Tentativas de desvio serão notificadas ao professor.</p>
+        <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">VOLTAR PARA A PROVA</button>
     </div>
     
     <div id="container-prova">
@@ -58,8 +137,8 @@
     </div>
 
     <script>
-        // ALTERAÇÃO CIRÚRGICA: O HTML agora envia DIRETAMENTE para o seu Google Apps Script (retirado do seu server.js)
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbz_jK23n3C0BwE8_y6Lp_mE10Y-W9P-vP4N3z8M7h6Q/exec";
+        // Comunicação apontando para a porta correta do seu computador
+        const URL_API_LOCAL = 'http://localhost:3000/api/entrar';
 
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
@@ -94,7 +173,7 @@
         
         function copiarLink() {
             const texto = document.getElementById('link-final-texto').innerText;
-            navigator.clipboard.writeText(texto).then(() => alert("Copiado com sucesso!"));
+            navigator.clipboard.writeText(texto).then(() => alert("Link copiado com sucesso!"));
         }
         
         function ligarCamera() {
@@ -128,23 +207,23 @@
             let separador = linkDaProvaPura.includes('?') ? '&' : '?';
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
             
-            ativarSeguranca();
+            activarSeguranca(); // Preservado o seu nome original
             
             let fotoBase64 = document.getElementById('canvas').toDataURL('image/png');
             
-            // Envia os dados iniciais direto para o Google Script via HTTPS (Modo no-cors para celulares aceitarem)
-            fetch(URL_GOOGLE_SCRIPT, {
+            fetch(URL_API_LOCAL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    idAluno: "Adriano",
                     email: "adriano.hennemann@gmail.com",
-                    nome: "Adriano",
                     acao: 'registro_inicial',
-                    foto: fotoBase64,
-                    nomeAba: 'Dados_Script'
+                    fotoBase64: fotoBase64
                 })
-            }).catch(err => console.error("Erro:", err));
+            })
+            .then(res => res.json())
+            .then(dados => console.log("Registro inicial bem-sucedido:", dados))
+            .catch(err => console.error("Erro no envio inicial:", err));
         }
 
         function activarSeguranca() {
@@ -153,39 +232,4 @@
             document.addEventListener("visibilitychange", function() {
                 if (document.hidden && document.getElementById('container-prova').style.display === "block") {
                     contadorSaidas++;
-                    document.getElementById('contagem-saidas').innerText = contadorSaidas;
-                    
-                    document.getElementById('container-prova').style.display = "none";
-                    document.getElementById('aviso-bloqueio').style.display = "flex";
-                    
-                    notificarServidor('alerta_desvio');
-                }
-            });
-        }
-        
-        function desbloquear() {
-            document.getElementById('aviso-bloqueio').style.display = "none";
-            document.getElementById('container-prova').style.display = "block";
-            
-            let separador = linkDaProvaPura.includes('?') ? '&' : '?';
-            document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
-        }
-
-        function notificarServidor(tipoAcao) {
-            // Envia os desvios direto para a planilha do Google sem precisar do VS Code ligado
-            fetch(URL_GOOGLE_SCRIPT, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: "adriano.hennemann@gmail.com",
-                    nome: "Adriano",
-                    acao: tipoAcao,
-                    foto: '',
-                    nomeAba: 'Dados_Script'
-                })
-            }).catch(err => console.log("Erro:", err));
-        }
-    </script>
-</body>
-</html>
+                    document.getElementById('contagem-saidas').innerText =
