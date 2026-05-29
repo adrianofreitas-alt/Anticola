@@ -109,7 +109,7 @@
                 <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
                 <div id="resultado-link" style="display:none;">
                     <p style="margin-top:15px; color:#aaa;">Clique abaixo para copiar o link gerado:</p>
-                    <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
+                    <div class="url-generated" id="link-final-texto" onclick="copiarLink()"></div>
                 </div>
             </div>
 
@@ -137,8 +137,10 @@
     </div>
 
     <script>
-        // Comunicação apontando para a porta correta do seu computador
-        const URL_API_LOCAL = 'http://localhost:3000/api/entrar';
+        // ATENÇÃO PROFESSOR: Quando você ligar o Ngrok no seu computador, 
+        // ele vai te dar um link parecido com "https://1234-abcd.ngrok-free.app".
+        // Cole esse link gerado aqui dentro das aspas abaixo para o celular te achar!
+        const URL_SERVIDOR_INTERNET = "COLE_AQUI_O_LINK_DO_NGROK";
 
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
@@ -207,11 +209,11 @@
             let separador = linkDaProvaPura.includes('?') ? '&' : '?';
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
             
-            activarSeguranca(); // Preservado o seu nome original
+            activarSeguranca();
             
             let fotoBase64 = document.getElementById('canvas').toDataURL('image/png');
             
-            fetch(URL_API_LOCAL, {
+            fetch(`${URL_SERVIDOR_INTERNET}/api/entrar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -220,10 +222,7 @@
                     acao: 'registro_inicial',
                     fotoBase64: fotoBase64
                 })
-            })
-            .then(res => res.json())
-            .then(dados => console.log("Registro inicial bem-sucedido:", dados))
-            .catch(err => console.error("Erro no envio inicial:", err));
+            }).catch(err => console.error("Erro no envio inicial:", err));
         }
 
         function activarSeguranca() {
@@ -251,7 +250,7 @@
         }
 
         function notificarServidor(tipoAcao) {
-            fetch(URL_API_LOCAL, {
+            fetch(`${URL_SERVIDOR_INTERNET}/api/entrar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
