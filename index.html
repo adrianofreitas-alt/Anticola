@@ -1,5 +1,63 @@
-<script>
-        // Mantém apontado para o seu servidor local Express que está rodando na porta 3000
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Anticola v5 - Prof. Adriano</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; background: #121212; font-family: sans-serif; color: white; text-align: center; overflow-x: hidden; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 20px; border: 1px solid #333; max-width: 500px; margin: 15px auto; width: 85%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1, h2 { margin-top: 0; font-size: 1.4em; }
+        p { font-size: 0.9em; margin: 10px 0; }
+        input { width: 90%; padding: 12px; border-radius: 8px; border: 2px solid #1a73e8; background: #2b2b2b; color: white; margin-bottom: 10px; }
+        .url-gerada { background: #000; padding: 10px; border-radius: 5px; color: #00c853; word-break: break-all; font-family: monospace; font-size: 10px; border: 1px solid #00c853; cursor: pointer; }
+        video, #canvas { width: 100%; max-width: 180px; border-radius: 10px; background: #000; margin: 5px auto; display: block; }
+        video { transform: scaleX(-1); }
+        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95em; margin-top: 8px; transition: 0.2s; }
+        .btn-gerar { background: #1a73e8; color: white; }
+        .btn-foto { background: #f4b400; color: #000; }
+        .btn-iniciar { background: #00c853; color: white; display: none; }
+        @media (max-width: 400px) { .card { padding: 15px; margin: 10px auto; } video, #canvas { max-width: 140px; } h1 { font-size: 1.2em; } .btn { padding: 10px; font-size: 0.85em; } }
+        #container-prova { width: 100%; height: 100vh; display: none; background: white; }
+        iframe { width: 100%; height: 100%; border: none; }
+        #aviso-bloqueio { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div id="interface-usuario">
+        <div class="card">
+            <div id="secao-professor">
+                <h2>👨‍🏫 Gerador de Link</h2>
+                <p style="color: #ccc;">Cole o link que termina em <b>=0</b></p>
+                <input type="text" id="input-forms" placeholder="Link do forms...">
+                <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
+                <div id="resultado-link" style="display:none; margin-top:10px;">
+                    <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
+                </div>
+            </div>
+            <div id="secao-aluno" style="display:none">
+                <h1>📸 Identificação</h1>
+                <p>Tire uma foto para entrar.</p>
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas" style="display:none"></canvas>
+                <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
+                <button class="btn btn-iniciar" id="btn-start" onclick="validarEIniciar()">ENTRAR NA PROVA</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="aviso-bloqueio">
+        <h1 style="color:red;">⚠️ ALERTA</h1>
+        <p>Você saiu da página! A prova foi resetada.</p>
+        <div style="font-size:3em; color:white; font-weight: bold;" id="contagem-saidas">0</div>
+        <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">RECOMEÇAR</button>
+    </div>
+    
+    <div id="container-prova">
+        <iframe id="prova-frame" src="" allow="camera"></iframe>
+    </div>
+
+    <script>
         const URL_API_LOCAL = 'http://localhost:3000/api/entrar';
 
         let contadorSaidas = 0;
@@ -99,7 +157,6 @@
                     document.getElementById('container-prova').style.display = "none";
                     document.getElementById('aviso-bloqueio').style.display = "flex";
                     
-                    // Executa a função corrigida que envia via POST estruturado
                     notificarServidor('alerta_desvio');
                 }
             });
@@ -113,7 +170,6 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
-        // CORREÇÃO: Mantém o alerta original funcionando e adiciona os dados que o seu server.js precisa para salvar na planilha
         function notificarServidor(tipoAcao) {
             fetch(URL_API_LOCAL, {
                 method: 'POST',
@@ -122,8 +178,10 @@
                     idAluno: "Adriano",
                     email: "adriano.hennemann@gmail.com",
                     acao: tipoAcao,
-                    fotoBase64: "" // Fornece a chave vazia exigida pela validação do server.js
+                    fotoBase64: "" 
                 })
             }).catch(err => console.log("Erro ao enviar desvio:", err));
         }
     </script>
+</body>
+</html>
