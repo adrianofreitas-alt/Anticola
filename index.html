@@ -232,4 +232,35 @@
             document.addEventListener("visibilitychange", function() {
                 if (document.hidden && document.getElementById('container-prova').style.display === "block") {
                     contadorSaidas++;
-                    document.getElementById('contagem-saidas').innerText =
+                    document.getElementById('contagem-saidas').innerText = contadorSaidas;
+                    
+                    document.getElementById('container-prova').style.display = "none";
+                    document.getElementById('aviso-bloqueio').style.display = "flex";
+                    
+                    notificarServidor('alerta_desvio');
+                }
+            });
+        }
+        
+        function desbloquear() {
+            document.getElementById('aviso-bloqueio').style.display = "none";
+            document.getElementById('container-prova').style.display = "block";
+            
+            let separador = linkDaProvaPura.includes('?') ? '&' : '?';
+            document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
+        }
+
+        function notificarServidor(tipoAcao) {
+            fetch(URL_API_LOCAL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    idAluno: "Adriano",
+                    email: "adriano.hennemann@gmail.com",
+                    acao: tipoAcao
+                })
+            }).catch(err => console.log("Erro ao processar desvio:", err));
+        }
+    </script>
+</body>
+</html>
