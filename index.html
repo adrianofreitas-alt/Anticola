@@ -69,7 +69,7 @@
             let separador = linkDaProvaPura.includes('?') ? '&' : '?';
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
             
-            ativarSeguranca();
+            activarSeguranca();
             
             let fotoBase64 = document.getElementById('canvas').toDataURL('image/jpeg', 0.4);
             
@@ -114,7 +114,6 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
-        // Notifica os desvios mantendo a aba 'Dados_Script' intacta para alimentar a planilha corretamente
         function notificarServidor(tipoAcao) {
             fetch(URL_API_LOCAL, {
                 method: 'POST',
