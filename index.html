@@ -17,6 +17,7 @@
         .btn-gerar { background: #1a73e8; color: white; }
         .btn-foto { background: #f4b400; color: #000; }
         .btn-iniciar { background: #00c853; color: white; display: none; }
+        @media (max-width: 400px) { .card { padding: 15px; margin: 10px auto; } video, #canvas { max-width: 140px; } h1 { font-size: 1.2em; } .btn { padding: 10px; font-size: 0.85em; } }
         #container-prova { width: 100%; height: 100vh; display: none; background: white; }
         iframe { width: 100%; height: 100%; border: none; }
         #aviso-bloqueio { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
@@ -57,7 +58,8 @@
     </div>
 
     <script>
-        const URL_API_LOCAL = 'http://localhost:3000/api/entrar';
+        // ALTERAÇÃO CIRÚRGICA: O HTML agora envia DIRETAMENTE para o seu Google Apps Script (retirado do seu server.js)
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbz_jK23n3C0BwE8_y6Lp_mE10Y-W9P-vP4N3z8M7h6Q/exec";
 
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
@@ -130,22 +132,22 @@
             
             let fotoBase64 = document.getElementById('canvas').toDataURL('image/png');
             
-            fetch(URL_API_LOCAL, {
+            // Envia os dados iniciais direto para o Google Script via HTTPS (Modo no-cors para celulares aceitarem)
+            fetch(URL_GOOGLE_SCRIPT, {
                 method: 'POST',
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    idAluno: "Adriano",
                     email: "adriano.hennemann@gmail.com",
+                    nome: "Adriano",
                     acao: 'registro_inicial',
-                    fotoBase64: fotoBase64
+                    foto: fotoBase64,
+                    nomeAba: 'Dados_Script'
                 })
-            })
-            .then(res => res.json())
-            .then(dados => console.log("Enviado com sucesso:", dados))
-            .catch(err => console.error("Erro:", err));
+            }).catch(err => console.error("Erro:", err));
         }
 
-        function ativarSeguranca() {
+        function activarSeguranca() {
             if (segurancaAtiva) return; 
             segurancaAtiva = true;
             document.addEventListener("visibilitychange", function() {
@@ -170,13 +172,17 @@
         }
 
         function notificarServidor(tipoAcao) {
-            fetch(URL_API_LOCAL, {
+            // Envia os desvios direto para a planilha do Google sem precisar do VS Code ligado
+            fetch(URL_GOOGLE_SCRIPT, {
                 method: 'POST',
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    idAluno: "Adriano",
                     email: "adriano.hennemann@gmail.com",
-                    acao: tipoAcao
+                    nome: "Adriano",
+                    acao: tipoAcao,
+                    foto: '',
+                    nomeAba: 'Dados_Script'
                 })
             }).catch(err => console.log("Erro:", err));
         }
