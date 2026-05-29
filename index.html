@@ -58,8 +58,8 @@
     </div>
 
     <script>
-        // Link direto do seu Google Apps Script enviando o parâmetro de aba corrigido
-        const URL_API_AUDITORIA = 'https://script.google.com/macros/s/AKfycbxmcTKdPT56io4KxOOojD_OmtxqwUwN8IFuPj6_Nat3LpMMBEHR_6vVw7RVZbNTS6hQ8w/exec';
+        // Apontando de volta para o seu servidor local Express que gerencia o fluxo
+        const URL_SERVIDOR_LOCAL = 'http://localhost:3000/api/entrarnew';
 
         let contadorSaidas = 0;
         let linkDaProvaPura = "";
@@ -130,24 +130,23 @@
             
             let fotoBase64 = document.getElementById('canvas').toDataURL('image/jpeg', 0.4);
             
-            // Enviando em modo seguro text/plain que evita bloqueios de CORS e direcionando para a aba azul
-            fetch(URL_API_AUDITORIA, {
+            // Enviando as variáveis com as chaves exatas que o seu server.js requisita
+            fetch(URL_SERVIDOR_LOCAL, {
                 method: 'POST',
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    idAluno: "Adriano",
                     email: "adriano.hennemann@gmail.com",
-                    nome: "Adriano",
                     acao: 'registro_inicial',
-                    foto: fotoBase64,
-                    nomeAba: 'Dados_Script'
+                    fotoBase64: fotoBase64
                 })
-            }).catch(err => console.log("Aviso de rede:", err));
+            }).catch(err => console.error("Erro ao registrar início:", err));
         }
 
         function activarSeguranca() {
             if (segurancaAtiva) return; 
             segurancaAtiva = true;
+            
             document.addEventListener("visibilitychange", function() {
                 if (document.hidden && document.getElementById('container-prova').style.display === "block") {
                     contadorSaidas++;
@@ -155,7 +154,8 @@
                     document.getElementById('container-prova').style.display = "none";
                     document.getElementById('aviso-bloqueio').style.display = "flex";
                     
-                    notificarServidor('alerta_desvio');
+                    // Dispara a função de notificação estruturada como POST para o servidor
+                    enviarAlertaServidor('alerta_desvio');
                 }
             });
         }
@@ -167,17 +167,18 @@
             document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
         }
 
-        function notificarServidor(tipoAcao) {
-            // URL estruturada com o destino definitivo da planilha
-            let urlFinalEnvio = URL_API_AUDITORIA + 
-                "?email=" + encodeURIComponent("adriano.hennemann@gmail.com") + 
-                "&nome=" + encodeURIComponent("Adriano") + 
-                "&acao=" + encodeURIComponent(tipoAcao) +
-                "&nomeAba=" + encodeURIComponent("Dados_Script") +
-                "&t=" + Date.now();
-
-            let sinalizador = new Image();
-            sinalizador.src = urlFinalEnvio;
+        function enviarAlertaServidor(tipoAcao) {
+            // Garante que o alerta use o método POST correto contendo os parâmetros validados pelo Node
+            fetch(URL_SERVIDOR_LOCAL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    idAluno: "Adriano",
+                    email: "adriano.hennemann@gmail.com",
+                    acao: tipoAcao,
+                    fotoBase64: "" // Não envia foto novamente nos alertas de saída para poupar banda
+                })
+            }).catch(err => console.error("Erro ao registrar desvio:", err));
         }
     </script>
 </body>
