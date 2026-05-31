@@ -48,6 +48,7 @@
             border: 1px solid #00c853; 
             cursor: pointer; 
             margin-top: 10px;
+            display: block;
         }
         video, #canvas { 
             width: 100%; 
@@ -109,7 +110,7 @@
                 <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
                 <div id="resultado-link" style="display:none;">
                     <p style="margin-top:15px; color:#aaa;">Clique abaixo para copiar o link gerado:</p>
-                    <div class="url-generada" id="link-final-texto" onclick="copiarLink()"></div>
+                    <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
                 </div>
             </div>
 
@@ -119,4 +120,49 @@
                 <video id="video" autoplay playsinline></video>
                 <canvas id="canvas" style="display:none"></canvas>
                 <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
-                <button class="btn btn-iniciar" id="btn-start
+                <button class="btn btn-iniciar" id="btn-start" onclick="validarEIniciar()">ENTRAR NA PROVA</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="aviso-bloqueio">
+        <h1 style="color:red; font-size: 2.5em; margin-bottom: 5px;">⚠️ ALERTA DE INFRAÇÃO</h1>
+        <p style="font-size: 1.2em; max-width: 400px;">Você tentou sair da página da prova! O sistema registrou seu desvio.</p>
+        <div style="font-size:4em; color:#ff3333; font-weight: bold; margin: 15px 0;" id="contagem-saidas">0</div>
+        <p style="color: #aaa; margin-bottom: 20px;">Tentativas de desvio serão notificadas ao professor.</p>
+        <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">VOLTAR PARA A PROVA</button>
+    </div>
+    
+    <div id="container-prova">
+        <iframe id="prova-frame" src="" allow="camera"></iframe>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO OFICIAL: Direcionado para o seu servidor estável no Render!
+        const URL_SERVIDOR_INTERNET = "https://portal-anticola.onrender.com";
+
+        let contadorSaidas = 0;
+        let linkDaProvaPura = "";
+        let segurancaAtiva = false; 
+        
+        window.onload = function() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const provaUrl = urlParams.get('prova');
+                if (provaUrl) {
+                    linkDaProvaPura = decodeURIComponent(provaUrl);
+                    document.getElementById('secao-professor').style.display = "none";
+                    document.getElementById('secao-aluno').style.display = "block";
+                    ligarCamera();
+                }
+            } catch (e) {
+                console.error("Erro ao processar URL:", e);
+            }
+        };
+        
+        function gerarLinkAcesso() {
+            let urlForms = document.getElementById('input-forms').value.trim();
+            if (urlForms.includes("http")) {
+                const siteUrl = window.location.href.split('?')[0];
+                const linkCompleto = siteUrl + "?prova=" + encodeURIComponent(urlForms);
+                document.getElementById('link-final-texto').innerText = linkCompleto;
