@@ -1,266 +1,181 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Anticola v5 - Prof. Adriano</title>
-    <style>
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            background: #121212; 
-            font-family: sans-serif; 
-            color: white; 
-            text-align: center; 
-            overflow-x: hidden; 
-        }
-        .card { 
-            background: #1e1e1e; 
-            padding: 20px; 
-            border-radius: 20px; 
-            border: 1px solid #333; 
-            max-width: 500px; 
-            margin: 15px auto; 
-            width: 85%; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-        }
-        h1, h2 { margin-top: 0; font-size: 1.4em; }
-        p { font-size: 0.9em; margin: 10px 0; }
-        input { 
-            width: 90%; 
-            padding: 12px; 
-            border-radius: 8px; 
-            border: 2px solid #1a73e8; 
-            background: #2b2b2b; 
-            color: white; 
-            margin-bottom: 10px; 
-            text-align: center;
-        }
-        .url-gerada { 
-            background: #000; 
-            padding: 10px; 
-            border-radius: 5px; 
-            color: #00c853; 
-            word-break: break-all; 
-            font-family: monospace; 
-            font-size: 11px; 
-            border: 1px solid #00c853; 
-            cursor: pointer; 
-            margin-top: 10px;
-            display: block;
-        }
-        video, #canvas { 
-            width: 100%; 
-            max-width: 240px; 
-            border-radius: 10px; 
-            background: #000; 
-            margin: 10px auto; 
-            display: block; 
-        }
-        video { transform: scaleX(-1); }
-        .btn { 
-            padding: 12px 20px; 
-            border-radius: 8px; 
-            border: none; 
-            cursor: pointer; 
-            font-weight: bold; 
-            width: 100%; 
-            font-size: 0.95em; 
-            margin-top: 8px; 
-            transition: 0.2s; 
-        }
-        .btn-gerar { background: #1a73e8; color: white; }
-        .btn-foto { background: #f4b400; color: #000; }
-        .btn-iniciar { background: #00c853; color: white; display: none; }
-        
-        #container-prova { 
-            width: 100%; 
-            height: 100vh; 
-            display: none; 
-            background: white; 
-        }
-        iframe { width: 100%; height: 100%; border: none; }
-        
-        #aviso-bloqueio { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: #000; 
-            z-index: 9999; 
-            justify-content: center; 
-            align-items: center; 
-            flex-direction: column; 
-            padding: 20px; 
-            box-sizing: border-box;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Anticola v6 - Prof. Adriano</title>
+<style>
+  body, html { margin:0; padding:0; min-height:100%; background:#121212; font-family:sans-serif; color:white; text-align:center; }
+  .card { background:#1e1e1e; padding:20px; border-radius:20px; border:1px solid #333; max-width:500px; margin:15px auto; width:85%; box-shadow:0 10px 30px rgba(0,0,0,.5); }
+  h1,h2 { margin-top:0; font-size:1.4em; }
+  p { font-size:.9em; margin:10px 0; }
+  input { width:90%; padding:12px; border-radius:8px; border:2px solid #1a73e8; background:#2b2b2b; color:white; margin-bottom:10px; }
+  .url-gerada { background:#000; padding:10px; border-radius:5px; color:#00c853; word-break:break-all; font-family:monospace; font-size:11px; border:1px solid #00c853; cursor:pointer; }
+  video, #canvas { width:100%; max-width:180px; border-radius:10px; background:#000; margin:5px auto; display:block; }
+  video { transform:scaleX(-1); }
+  .btn { padding:12px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:bold; width:100%; font-size:.95em; margin-top:8px; }
+  .btn-gerar { background:#1a73e8; color:white; }
+  .btn-foto  { background:#f4b400; color:#000; }
+  .btn-iniciar { background:#00c853; color:white; display:none; }
+  #container-prova { width:100%; height:100vh; display:none; background:white; }
+  iframe { width:100%; height:100%; border:none; }
+  #aviso-bloqueio { display:none; position:fixed; inset:0; background:#000; z-index:9999; justify-content:center; align-items:center; flex-direction:column; padding:20px; }
+</style>
 </head>
 <body>
 
-    <div id="interface-usuario">
-        <div class="card">
-            <div id="secao-professor">
-                <h2>👨‍🏫 Gerador de Link</h2>
-                <p style="color: #ccc;">Cole o link que termina em <b>=0</b></p>
-                <input type="text" id="input-forms" placeholder="Link do Google Forms...">
-                <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
-                <div id="resultado-link" style="display:none;">
-                    <p style="margin-top:15px; color:#aaa;">Clique abaixo para copiar o link gerado:</p>
-                    <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
-                </div>
-            </div>
-
-            <div id="secao-aluno" style="display:none">
-                <h1>📸 Identificação Obrigatória</h1>
-                <p>Posicione seu rosto em frente à câmera e tire uma foto para liberar sua prova.</p>
-                <video id="video" autoplay playsinline></video>
-                <canvas id="canvas" style="display:none"></canvas>
-                <button class="btn btn-foto" id="btn-snap" onclick="tirarFoto()">CAPTURAR FOTO</button>
-                <button class="btn btn-iniciar" id="btn-start" onclick="validarEIniciar()">ENTRAR NA PROVA</button>
-            </div>
-        </div>
+<div id="secao-professor">
+  <div class="card">
+    <h2>👨‍💻 Gerador de Link</h2>
+    <p>Cole o link do Forms (o que termina em <b>=0</b>)</p>
+    <input type="text" id="input-forms" placeholder="Link do forms...">
+    <button class="btn btn-gerar" onclick="gerarLinkAcesso()">GERAR LINK DO ALUNO</button>
+    <div id="resultado-link" style="display:none; margin-top:15px;">
+      <p>Link para enviar ao aluno (clique para copiar):</p>
+      <div class="url-gerada" id="link-final-texto" onclick="copiarLink()"></div>
     </div>
-    
-    <div id="aviso-bloqueio">
-        <h1 style="color:red; font-size: 2.5em; margin-bottom: 5px;">⚠️ ALERTA DE INFRAÇÃO</h1>
-        <p style="font-size: 1.2em; max-width: 400px;">Você tentou sair da página da prova! O sistema registrou seu desvio.</p>
-        <div style="font-size:4em; color:#ff3333; font-weight: bold; margin: 15px 0;" id="contagem-saidas">0</div>
-        <p style="color: #aaa; margin-bottom: 20px;">Tentativas de desvio serão notificadas ao professor.</p>
-        <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">VOLTAR PARA A PROVA</button>
-    </div>
-    
-    <div id="container-prova">
-        <iframe id="prova-frame" src="" allow="camera"></iframe>
-    </div>
+  </div>
+</div>
 
-    <script>
-        // LINK OFICIAL DO SEU SERVIDOR NO RENDER
-        const URL_SERVIDOR_INTERNET = "https://portal-anticola.onrender.com";
+<div id="secao-aluno" style="display:none;">
+  <div class="card" id="interface-usuario">
+    <h1>📸 Identificação</h1>
+    <p>Insira seus dados e tire uma foto para entrar.</p>
+    <input type="text"  id="aluno-nome"  placeholder="Seu Nome Completo...">
+    <input type="email" id="aluno-email" placeholder="Seu E-mail Institucional...">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none"></canvas>
+    <button class="btn btn-foto"    id="btn-snap"  onclick="tirarFoto()">CAPTURAR FOTO</button>
+    <button class="btn btn-iniciar" id="btn-start" onclick="validarEIniciar()">ENTRAR NA PROVA</button>
+  </div>
 
-        let contadorSaidas = 0;
-        let linkDaProvaPura = "";
-        let segurancaAtiva = false; 
-        
-        window.onload = function() {
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const provaUrl = urlParams.get('prova');
-                if (provaUrl) {
-                    linkDaProvaPura = decodeURIComponent(provaUrl);
-                    document.getElementById('secao-professor').style.display = "none";
-                    document.getElementById('secao-aluno').style.display = "block";
-                    ligarCamera();
-                }
-            } catch (e) {
-                console.error("Erro ao processar URL:", e);
-            }
-        };
-        
-        function gerarLinkAcesso() {
-            let urlForms = document.getElementById('input-forms').value.trim();
-            if (urlForms.includes("http")) {
-                // CORREÇÃO DA SINTAXE: Montagem limpa e infalível da URL base
-                const siteUrl = window.location.origin + window.location.pathname;
-                const linkCompleto = siteUrl + "?prova=" + encodeURIComponent(urlForms);
-                
-                document.getElementById('link-final-texto').innerText = linkCompleto;
-                document.getElementById('resultado-link').style.display = "block";
-            } else { 
-                alert("Cole um link válido do Google Forms."); 
-            }
-        }
-        
-        function copiarLink() {
-            const texto = document.getElementById('link-final-texto').innerText;
-            navigator.clipboard.writeText(texto).then(() => alert("Link copiado com sucesso!"));
-        }
-        
-        function ligarCamera() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-            .then(stream => { 
-                document.getElementById('video').srcObject = stream; 
-            })
-            .catch(err => { 
-                alert("Para continuar, é obrigatório permitir o acesso à câmera."); 
-            });
-        }
-        
-        function tirarFoto() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            
-            canvas.width = 320;
-            canvas.height = 240;
-            canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
-            
-            video.style.display = 'none';
-            canvas.style.display = 'block';
-            document.getElementById('btn-start').style.display = 'block';
-            document.getElementById('btn-snap').innerText = "TIRAR OUTRA FOTO";
-        }
+  <div id="container-prova">
+    <iframe id="prova-frame" src="" allow="camera"></iframe>
+  </div>
 
-        function validarEIniciar() {
-            document.getElementById('interface-usuario').style.display = "none";
-            document.getElementById('container-prova').style.display = "block";
-            
-            let separador = linkDaProvaPura.includes('?') ? '&' : '?';
-            document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
-            
-            activarSeguranca();
-            
-            let fotoBase64 = document.getElementById('canvas').toDataURL('image/png');
-            
-            fetch(`${URL_SERVIDOR_INTERNET}/api/entrar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    idAluno: "Adriano",
-                    email: "adriano.hennemann@gmail.com",
-                    acao: 'registro_inicial',
-                    fotoBase64: fotoBase64
-                })
-            }).catch(err => console.error("Erro no envio inicial:", err));
-        }
+  <div id="aviso-bloqueio">
+    <h1 style="color:red;">⚠️ ALERTA</h1>
+    <p>Você saiu da página da prova!</p>
+    <p>Saídas registradas: <span id="contagem-saidas">0</span></p>
+    <button class="btn" style="max-width:250px; background:white; color:black" onclick="desbloquear()">RECOMEÇAR</button>
+  </div>
+</div>
 
-        function activarSeguranca() {
-            if (segurancaAtiva) return; 
-            segurancaAtiva = true;
-            document.addEventListener("visibilitychange", function() {
-                if (document.hidden && document.getElementById('container-prova').style.display === "block") {
-                    contadorSaidas++;
-                    document.getElementById('contagem-saidas').innerText = contadorSaidas;
-                    
-                    document.getElementById('container-prova').style.display = "none";
-                    document.getElementById('aviso-bloqueio').style.display = "flex";
-                    
-                    notificarServidor('alerta_desvio');
-                }
-            });
-        }
-        
-        function desbloquear() {
-            document.getElementById('aviso-bloqueio').style.display = "none";
-            document.getElementById('container-prova').style.display = "block";
-            
-            let separador = linkDaProvaPura.includes('?') ? '&' : '?';
-            document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
-        }
+<script>
+// =======================================================
+// CONFIGURAÇÃO — TROQUE PELOS SEUS DOIS LINKS:
+// =======================================================
+// 1) URL pública do SEU SITE (GitHub Pages, Render, etc).
+//    Exemplo: "https://seu-usuario.github.io/anticola/"
+const URL_DO_SITE = "https://SEU-USUARIO.github.io/SEU-REPOSITORIO/";
 
-        function notificarServidor(tipoAcao) {
-            fetch(`${URL_SERVIDOR_INTERNET}/api/entrar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    idAluno: "Adriano",
-                    email: "adriano.hennemann@gmail.com",
-                    acao: tipoAcao
-                })
-            }).catch(err => console.log("Erro ao processar desvio:", err));
-        }
-    </script>
+// 2) URL do Apps Script publicado (termina em /exec)
+const URL_API_AUDITORIA = "https://script.google.com/macros/s/AKfycbxmcTKdPT56io4KxOOojD_OmtxqwUwN8IFuPj6_Nat3LpMMBEHR_6vVw7RVZbNTS6hQ8w/exec";
+// =======================================================
+
+let contadorSaidas = 0;
+let linkDaProvaPura = "";
+let segurancaAtiva = false;
+
+window.onload = function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const provaUrl = urlParams.get('prova');
+  if (provaUrl) {
+    linkDaProvaPura = decodeURIComponent(provaUrl);
+    document.getElementById('secao-professor').style.display = "none";
+    document.getElementById('secao-aluno').style.display = "block";
+    ligarCamera();
+  }
+};
+
+function gerarLinkAcesso() {
+  let urlForms = document.getElementById('input-forms').value.trim();
+  if (!urlForms.includes("http")) { alert("Cole um link válido do Forms."); return; }
+
+  // Usa SEMPRE a URL fixa do site (não depende de onde o professor abriu)
+  let base = URL_DO_SITE;
+  if (!base.endsWith("/") && !base.endsWith(".html")) base += "/";
+  const linkCompleto = base + "?prova=" + encodeURIComponent(urlForms);
+
+  document.getElementById('link-final-texto').innerText = linkCompleto;
+  document.getElementById('resultado-link').style.display = "block";
+}
+
+function copiarLink() {
+  const texto = document.getElementById('link-final-texto').innerText;
+  navigator.clipboard.writeText(texto).then(() => alert("Copiado!"));
+}
+
+function ligarCamera() {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+    .then(stream => { document.getElementById('video').srcObject = stream; })
+    .catch(() => { alert("Ligue a câmera para prosseguir."); });
+}
+
+function tirarFoto() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  video.style.display = 'none';
+  canvas.style.display = 'block';
+  document.getElementById('btn-start').style.display = 'block';
+  document.getElementById('btn-snap').innerText = "TIRAR OUTRA FOTO";
+}
+
+function validarEIniciar() {
+  let nomeVal  = document.getElementById('aluno-nome').value.trim();
+  let emailVal = document.getElementById('aluno-email').value.trim();
+  if (!nomeVal || !emailVal) { alert("Preencha Nome e E-mail."); return; }
+
+  document.getElementById('interface-usuario').style.display = "none";
+  document.getElementById('container-prova').style.display   = "block";
+
+  let separador = linkDaProvaPura.includes('?') ? '&' : '?';
+  document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
+
+  ativarSeguranca();
+  notificarServidor('registro_inicial');
+}
+
+function ativarSeguranca() {
+  if (segurancaAtiva) return;
+  segurancaAtiva = true;
+  document.addEventListener("visibilitychange", function() {
+    if (document.hidden && document.getElementById('container-prova').style.display === "block") {
+      contadorSaidas++;
+      document.getElementById('contagem-saidas').innerText = contadorSaidas;
+      document.getElementById('container-prova').style.display = "none";
+      document.getElementById('aviso-bloqueio').style.display   = "flex";
+      notificarServidor('alerta_desvio');
+    }
+  });
+}
+
+function desbloquear() {
+  document.getElementById('aviso-bloqueio').style.display   = "none";
+  document.getElementById('container-prova').style.display  = "block";
+  let separador = linkDaProvaPura.includes('?') ? '&' : '?';
+  document.getElementById('prova-frame').src = linkDaProvaPura + separador + "embedded=true&refresh=" + Date.now();
+}
+
+function notificarServidor(tipoAcao) {
+  let nomeVal  = document.getElementById('aluno-nome').value.trim();
+  let emailVal = document.getElementById('aluno-email').value.trim();
+  let desvios  = (tipoAcao === 'alerta_desvio') ? 1 : 0;
+
+  let urlFinalEnvio = URL_API_AUDITORIA
+    + "?email="      + encodeURIComponent(emailVal)
+    + "&nome="       + encodeURIComponent(nomeVal)
+    + "&id_sistema=" + encodeURIComponent("Site-ID")
+    + "&acao="       + encodeURIComponent(tipoAcao)
+    + "&desvios="    + desvios
+    + "&t="          + Date.now();
+
+  let sinalizador = new Image();
+  sinalizador.src = urlFinalEnvio;
+}
+</script>
 </body>
 </html>
